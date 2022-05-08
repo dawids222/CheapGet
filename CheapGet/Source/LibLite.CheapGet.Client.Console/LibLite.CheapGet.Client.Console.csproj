@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LibLite.CheapGet.Business\LibLite.CheapGet.Business.csproj" />
+    <ProjectReference Include="..\LibLite.CheapGet.DAL\LibLite.CheapGet.DAL.csproj" />
+  </ItemGroup>
+
+</Project>
