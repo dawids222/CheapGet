@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LiteLib.DI-Lite" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\LibLite.CheapGet.Business\LibLite.CheapGet.Business.csproj" />
     <ProjectReference Include="..\LibLite.CheapGet.DAL\LibLite.CheapGet.DAL.csproj" />
   </ItemGroup>

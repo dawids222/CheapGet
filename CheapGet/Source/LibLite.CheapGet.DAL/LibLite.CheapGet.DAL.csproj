@@ -3,8 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LibLite.CheapGet.Core\LibLite.CheapGet.Core.csproj" />
