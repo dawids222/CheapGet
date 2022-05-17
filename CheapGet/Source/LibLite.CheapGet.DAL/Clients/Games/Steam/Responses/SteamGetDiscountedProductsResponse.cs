@@ -1,4 +1,4 @@
-﻿namespace LibLite.CheapGet.DAL.Services.Games.Steam.Responses
+﻿namespace LibLite.CheapGet.DAL.Clients.Games.Steam.Responses
 {
     public class SteamGetDiscountedProductsResponse
     {

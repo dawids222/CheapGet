@@ -3,11 +3,11 @@ using LibLite.CheapGet.Core.Extensions;
 using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.Steam;
+using LibLite.CheapGet.DAL.Clients.Games.Steam.Responses;
 using LibLite.CheapGet.DAL.Extensions;
-using LibLite.CheapGet.DAL.Services.Games.Steam.Responses;
 using System.Text;
 
-namespace LibLite.CheapGet.DAL.Services.Games
+namespace LibLite.CheapGet.DAL.Clients.Games
 {
     public class SteamClient : ISteamClient
     {

@@ -1,34 +1,21 @@
-﻿using LibLite.CheapGet.Core.Services;
-using LibLite.CheapGet.Core.Stores;
-using LibLite.CheapGet.Core.Stores.Games.Steam;
-using LibLite.CheapGet.DAL.Services.Games;
-using LibLite.CheapGet.DAL.Services.Games.Steam.Responses;
+﻿using LibLite.CheapGet.Core.Stores.Games.Steam;
+using LibLite.CheapGet.DAL.Clients.Games;
+using LibLite.CheapGet.DAL.Clients.Games.Steam.Responses;
 using Moq;
 using NUnit.Framework;
+using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace LibLite.CheapGet.DAL.Tests.Clients.Games
 {
     [TestFixture]
-    public class SteamClientTests
+    public class SteamClientTests : StoreClientTests<SteamClient>
     {
-        private CancellationToken _token;
-
-        private Mock<IHttpClient> _httpClientMock;
-
-        private SteamClient _client;
-
-        [SetUp]
-        public void SetUp()
+        protected override SteamClient CreateClient()
         {
-            _token = new();
-
-            _httpClientMock = new();
-
-            _client = new(_httpClientMock.Object);
+            return new(_httpClientMock.Object);
         }
 
         [Test]
@@ -98,16 +85,6 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             AssertAreEqual(expected99, product);
         }
 
-        private static void AssertAreEqual(Product expected, Product actual)
-        {
-            Assert.AreEqual(expected.StoreName, actual.StoreName);
-            Assert.AreEqual(expected.Name, actual.Name);
-            Assert.AreEqual(expected.BasePrice, actual.BasePrice);
-            Assert.AreEqual(expected.DiscountedPrice, actual.DiscountedPrice);
-            Assert.AreEqual(expected.DiscountPercentage, actual.DiscountPercentage);
-            Assert.AreEqual(expected.DiscountValue, actual.DiscountValue);
-        }
-
         [Test]
         public async Task GetDiscountedProductsAsync_Start25Count50_CallsCorrectUrl()
         {
@@ -148,6 +125,18 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=25&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
             _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=125&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
             _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=225&count=50&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
+        }
+
+        [Test]
+        public void GetDiscountedProductsAsync_HttpClientThrows_ThrowsTheSameException()
+        {
+            _httpClientMock
+                .Setup(x => x.GetAsync<SteamGetDiscountedProductsResponse>(It.IsAny<string>(), _token))
+                .ThrowsAsync(_exception);
+
+            Task act() => _client.GetDiscountedProductsAsync(0, 1, _token);
+
+            Assert.ThrowsAsync<Exception>(act, _exception.Message);
         }
     }
 }

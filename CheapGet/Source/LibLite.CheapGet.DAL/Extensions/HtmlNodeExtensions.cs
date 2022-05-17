@@ -34,8 +34,14 @@ namespace LibLite.CheapGet.DAL.Extensions
                 var characters = value.Where(IsValidDigitCharacter).ToArray();
                 value = new string(characters).Replace(",", ".");
             }
+            return TryConvertFromInvariantString<T>(value);
+        }
+
+        private static T TryConvertFromInvariantString<T>(string value)
+        {
             var converter = TypeDescriptor.GetConverter(typeof(T));
-            return (T)converter.ConvertFromInvariantString(value);
+            try { return (T)converter.ConvertFromInvariantString(value); }
+            catch (Exception) { return default; }
         }
 
         private static bool IsValidDigitCharacter(char value) => char.IsDigit(value) || value == '.' || value == ',';
