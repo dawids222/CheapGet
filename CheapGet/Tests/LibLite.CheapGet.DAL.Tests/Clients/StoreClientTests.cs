@@ -38,6 +38,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients
             Assert.AreEqual(expected.DiscountedPrice, actual.DiscountedPrice);
             Assert.AreEqual(expected.DiscountPercentage, actual.DiscountPercentage);
             Assert.AreEqual(expected.DiscountValue, actual.DiscountValue);
+            Assert.AreEqual(expected.ImgUrl, actual.ImgUrl);
         }
 
         protected static void AssertAreEqual(IEnumerable<Product> expected, IEnumerable<Product> actual)

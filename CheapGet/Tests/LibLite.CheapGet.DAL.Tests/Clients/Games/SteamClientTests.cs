@@ -23,12 +23,11 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         {
             var resultsHtml = File.ReadAllText("Resources\\SteamGetDiscountedProductsStart0Count100Html.txt");
             var url = $"https://store.steampowered.com/search/results/?query&start=0&count=1&dynamic_data=&sort_by=_ASC&specials=1&infinite=1";
-            var expected = new SteamProduct
-            {
-                Name = "Red Dead Redemption 2",
-                BasePrice = 249.9,
-                DiscountedPrice = 124.95,
-            };
+            var expected = new SteamProduct(
+                name: "Red Dead Redemption 2",
+                basePrice: 249.9,
+                discountedPrice: 124.95,
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907");
             var response = new SteamGetDiscountedProductsResponse
             {
                 success = 1,
@@ -52,18 +51,16 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         {
             var resultsHtml = File.ReadAllText("Resources\\SteamGetDiscountedProductsStart0Count100Html.txt");
             var url = $"https://store.steampowered.com/search/results/?query&start=0&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1";
-            var expected0 = new SteamProduct
-            {
-                Name = "Red Dead Redemption 2",
-                BasePrice = 249.9,
-                DiscountedPrice = 124.95,
-            };
-            var expected99 = new SteamProduct
-            {
-                Name = "Forts - High Seas Bundle",
-                BasePrice = 89.98,
-                DiscountedPrice = 56.68,
-            };
+            var expected0 = new SteamProduct(
+                name: "Red Dead Redemption 2",
+                basePrice: 249.9,
+                discountedPrice: 124.95,
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907");
+            var expected99 = new SteamProduct(
+                name: "Forts - High Seas Bundle",
+                basePrice: 89.98,
+                discountedPrice: 56.68,
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/bundles/25294/46rchgr1oc1lro1n/capsule_sm_120.jpg?t=1647870827");
             var response = new SteamGetDiscountedProductsResponse
             {
                 success = 1,

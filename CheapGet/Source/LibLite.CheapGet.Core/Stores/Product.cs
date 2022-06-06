@@ -7,6 +7,7 @@
         public string Name { get; init; }
         public double BasePrice { get; init; }
         public double DiscountedPrice { get; init; }
+        public string ImgUrl { get; init; }
 
         public double DiscountPercentage => CalculateDiscountPercentage();
         public double DiscountValue => CalculateDiscountValue();
@@ -16,11 +17,13 @@
         public Product(
             string name,
             double basePrice,
-            double discountedPrice)
+            double discountedPrice,
+            string imgUrl = null)
         {
             Name = name;
             BasePrice = basePrice;
             DiscountedPrice = discountedPrice;
+            ImgUrl = imgUrl;
         }
 
         private double CalculateDiscountPercentage()

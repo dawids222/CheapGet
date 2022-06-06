@@ -49,7 +49,8 @@ namespace LibLite.CheapGet.DAL.Clients.Games.GoG
                 .Select(x => new GogProduct(
                     x.Title,
                     x.Price.BaseMoney.Amount,
-                    x.Price.FinalMoney.Amount))
+                    x.Price.FinalMoney.Amount,
+                    x.CoverHorizontal))
                 .ToList();
         }
     }

@@ -4,7 +4,11 @@
     {
         public override string StoreName => "GoG";
 
-        public GogProduct(string name, double basePrice, double discountedPrice)
-            : base(name, basePrice, discountedPrice) { }
+        public GogProduct(
+            string name,
+            double basePrice,
+            double discountedPrice,
+            string imgUrl)
+            : base(name, basePrice, discountedPrice, imgUrl) { }
     }
 }

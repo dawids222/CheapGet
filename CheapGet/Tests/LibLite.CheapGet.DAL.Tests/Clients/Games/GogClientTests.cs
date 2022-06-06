@@ -141,6 +141,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             return new ResponseProduct
             {
                 Title = GenerateRandomTitle(),
+                CoverHorizontal = $"https://images.gog-statics.com/{Guid.NewGuid()}.png",
                 Price = new Price
                 {
                     BaseMoney = new Money { Amount = baseAmount },
@@ -154,7 +155,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             return new GogProduct(
                 product.Title,
                 product.Price.BaseMoney.Amount,
-                product.Price.FinalMoney.Amount);
+                product.Price.FinalMoney.Amount,
+                product.CoverHorizontal);
         }
     }
 }

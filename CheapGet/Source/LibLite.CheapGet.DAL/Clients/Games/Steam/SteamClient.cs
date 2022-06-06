@@ -78,6 +78,7 @@ namespace LibLite.CheapGet.DAL.Clients.Games
             var productRows = document.DocumentNode.Descendants("a");
             foreach (var productRow in productRows)
             {
+                var searchCapsuleNode = productRow.GetFirstChildWithClass("search_capsule");
                 var nameCombinedNode = productRow.GetFirstChildWithClass("responsive_search_name_combined");
                 var discountCombinedNode = nameCombinedNode.GetFirstChildWithClass("search_price_discount_combined");
                 var priceNode = discountCombinedNode.GetFirstChildWithClass("search_price");
@@ -96,12 +97,11 @@ namespace LibLite.CheapGet.DAL.Clients.Games
                     ?.GetLastChildWithName("#text")
                     ?.GetValue<double>() ?? 0;
 
-                yield return new SteamProduct
-                {
-                    Name = name,
-                    BasePrice = basePrice,
-                    DiscountedPrice = discountedPrice,
-                };
+                var imgUrl = searchCapsuleNode
+                    ?.GetFirstChildWithName("img")
+                    ?.GetAttributeValue("src", "");
+
+                yield return new SteamProduct(name, basePrice, discountedPrice, imgUrl);
             }
         }
     }

@@ -4,11 +4,11 @@
     {
         public override string StoreName => "Steam";
 
-        public SteamProduct() { }
         public SteamProduct(
             string name,
             double basePrice,
-            double discountedPrice)
-            : base(name, basePrice, discountedPrice) { }
+            double discountedPrice,
+            string imgUrl)
+            : base(name, basePrice, discountedPrice, imgUrl) { }
     }
 }
