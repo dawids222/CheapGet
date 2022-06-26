@@ -1,10 +1,12 @@
 ﻿using DI_Lite;
 using LibLite.CheapGet.Business.Collections;
+using LibLite.CheapGet.Business.Services.Reports;
 using LibLite.CheapGet.Business.Services.Serializers;
 using LibLite.CheapGet.Business.Services.Stores;
 using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Services;
+using LibLite.CheapGet.Core.Services.Models;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.GoG;
 using LibLite.CheapGet.Core.Stores.Games.Steam;
@@ -14,6 +16,7 @@ using LibLite.CheapGet.DAL.Clients.Games.GoG;
 using LibLite.CheapGet.DAL.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -24,12 +27,15 @@ Console.WriteLine("Hello World!");
 
 using var container = new Container();
 container.Factory(_ => new System.Net.Http.HttpClient());
+container.Scoped<IFileService, FileService>();
+container.Scoped<IResourceService, FileService>();
+container.Scoped<IReportGenerator, HtmlReportGenerator>();
+container.Scoped<ISerializer, SystemTextJsonSerializer>();
 container.Factory<IHttpClient, HttpClient>();
 container.Scoped<ISteamClient, SteamClient>();
 container.Scoped<IStoreClient, SteamClient>("Steam");
 container.Scoped<IGogClient, GogClient>();
 container.Scoped<IStoreClient, GogClient>("GoG");
-container.Scoped<ISerializer, SystemTextJsonSerializer>();
 container.Scoped<IStoreService>("Games", provider =>
 {
     var names = new[] { "Steam", "GoG" };
@@ -48,6 +54,8 @@ if (!constructabilityReport.IsConstructable)
 
 using var scope = container.CreateScope();
 var service = scope.Get<IStoreService>("Games");
+var reportGenerator = scope.Get<IReportGenerator>();
+var fileService = scope.Get<IFileService>();
 
 var count = 0;
 var filters = new List<ICollectionFilter<Product>>();
@@ -59,7 +67,7 @@ while (true)
     {
         await MakeRequest();
     }
-    catch (Exception) { }
+    catch (Exception ex) { }
 }
 
 async Task MakeRequest()
@@ -85,7 +93,23 @@ async Task MakeRequest()
 
     var parameters = new GetProductsRequest(count, filters, sorts);
     var products = await service.GetDiscountedProductsAsync(parameters, CancellationToken.None);
-    Console.WriteLine(ToString(products));
+    var report = await reportGenerator.GenerateReportAsync(products);
+    // TODO: This probably should be abstracted..
+    var file = new FileModel
+    {
+        Path = $"{Directory.GetCurrentDirectory()}\\Reports",
+        Name = DateTime.Now.ToString("yyyy-MM-ddTHH.mm.ss.fffffff"),
+        Extension = report.Format switch
+        {
+            ReportFormat.HTML => "html",
+            _ => throw new NotImplementedException(),
+        },
+        Content = report.GetBytes(),
+    };
+    await fileService.SaveAsync(file);
+    fileService.Open(file);
+    await Task.Delay(1000);
+    fileService.Delete(file);
 }
 
 void HandleInput(string input)

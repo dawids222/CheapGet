@@ -134,19 +134,15 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
                 },
             };
 
-            var start = DateTime.UtcNow;
-            for (var i = 0; i < 1000000; i++)
-                await _service.GetDiscountedProductsAsync(request, _token);
-            var end = DateTime.UtcNow;
-            var milliseconds = (end - start).TotalMilliseconds;
+            var result = await _service.GetDiscountedProductsAsync(request, _token);
 
-            //CollectionAssert.AreEqual(expected, result);
-            //Assert.AreEqual(50, result.Count());
-            //foreach (var number in GetRange(0, 900, 100))
-            //{
-            //    _store1.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
-            //    _store2.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
-            //}
+            CollectionAssert.AreEqual(expected, result);
+            Assert.AreEqual(50, result.Count());
+            foreach (var number in GetRange(0, 900, 100))
+            {
+                _store1.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
+                _store2.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
+            }
         }
 
         [Test]

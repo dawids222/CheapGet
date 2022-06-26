@@ -9,4 +9,14 @@
     <ProjectReference Include="..\LibLite.CheapGet.Core\LibLite.CheapGet.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\html_report_template.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
