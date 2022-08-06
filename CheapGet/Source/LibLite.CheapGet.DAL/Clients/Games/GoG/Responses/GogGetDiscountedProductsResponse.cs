@@ -9,6 +9,7 @@
         public class Product
         {
             public string Title { get; set; }
+            public string Slug { get; set; }
             public string CoverHorizontal { get; set; }
             public Price Price { get; set; }
         }

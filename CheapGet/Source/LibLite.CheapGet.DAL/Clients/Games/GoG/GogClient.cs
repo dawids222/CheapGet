@@ -7,6 +7,7 @@ namespace LibLite.CheapGet.DAL.Clients.Games.GoG
 {
     public class GogClient : IGogClient
     {
+        public const string PRODUCT_PAGE_URL_TEMPLATE = "https://www.gog.com/game/";
         private const int PRODUCTS_PER_REQUEST = 100;
 
         private readonly IHttpClient _httpClient;
@@ -50,8 +51,15 @@ namespace LibLite.CheapGet.DAL.Clients.Games.GoG
                     x.Title,
                     x.Price.BaseMoney.Amount,
                     x.Price.FinalMoney.Amount,
-                    x.CoverHorizontal))
+                    x.CoverHorizontal,
+                    ToProductUrl(x.Slug)))
                 .ToList();
+        }
+
+        private static string ToProductUrl(string slug)
+        {
+            var name = slug.Replace('-', '_');
+            return $"{PRODUCT_PAGE_URL_TEMPLATE}{name}";
         }
     }
 }

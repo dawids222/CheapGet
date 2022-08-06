@@ -185,7 +185,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             _store2.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
         }
 
-        IEnumerable<int> GetRange(int first, int last, int step)
+        private static IEnumerable<int> GetRange(int first, int last, int step)
         {
             if (step == 0)
                 throw new ArgumentException("zero step");
@@ -220,7 +220,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             public override string StoreName => "Mock";
 
             public MockProduct(string name, double basePrice, double discountedPrice)
-                : base(name, basePrice, discountedPrice) { }
+                : base(name, basePrice, discountedPrice, "", "") { }
         }
     }
 }

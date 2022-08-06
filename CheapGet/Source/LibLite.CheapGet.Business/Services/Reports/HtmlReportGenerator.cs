@@ -38,7 +38,7 @@ namespace LibLite.CheapGet.Business.Services.Reports
         <tr>
             <td>{product.StoreName}</td>
             <td><img src=""{product.ImgUrl}""></img></td>
-            <td>{product.Name}</td>
+            <td><a href=""{product.Url}"" target=""_blank"">{product.Name}</a></td>
             <td>{product.BasePrice.ToString("0.00", CultureInfo.InvariantCulture)}</td>
             <td>{product.DiscountedPrice.ToString("0.00", CultureInfo.InvariantCulture)}</td>
             <td>-{product.DiscountValue.ToString("0.00", CultureInfo.InvariantCulture)}</td>

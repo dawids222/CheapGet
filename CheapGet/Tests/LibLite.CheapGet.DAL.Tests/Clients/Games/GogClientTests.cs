@@ -138,9 +138,11 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         private static ResponseProduct GenerateRandomResponseProduct()
         {
             var baseAmount = _random.Next(10, 400);
+            var title = GenerateRandomTitle();
             return new ResponseProduct
             {
-                Title = GenerateRandomTitle(),
+                Title = title,
+                Slug = title.Replace(' ', '-'),
                 CoverHorizontal = $"https://images.gog-statics.com/{Guid.NewGuid()}.png",
                 Price = new Price
                 {
@@ -156,7 +158,14 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 product.Title,
                 product.Price.BaseMoney.Amount,
                 product.Price.FinalMoney.Amount,
-                product.CoverHorizontal);
+                product.CoverHorizontal,
+                ToProductUrl(product.Slug));
+        }
+
+        private static string ToProductUrl(string slug)
+        {
+            var name = slug.Replace('-', '_');
+            return $"{GogClient.PRODUCT_PAGE_URL_TEMPLATE}{name}";
         }
     }
 }

@@ -36,8 +36,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
                 .ReturnsAsync($"<html><head></head><body><table>{HtmlReportGenerator.TEMPLATE_CONTENT_PLACEHOLDER}</table></body></html>");
             var products = new Product[]
             {
-                new SteamProduct("steam_game", 10, 5, "http://steam_game.com"),
-                new GogProduct("gog_game", 20, 7.5, "http://gog_game.com"),
+                new SteamProduct("steam_game", 10, 5, "http://steam_game.com", "http://steam_game.com/app/1234"),
+                new GogProduct("gog_game", 20, 7.5, "http://gog_game.com", "http://gog_game.com/app/4321"),
             };
 
             var result = await _reportGenerator.GenerateReportAsync(products);
@@ -47,7 +47,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
                 <tr>
                     <td>{products[0].StoreName}</td>
                     <td><img src=""{products[0].ImgUrl}""></img></td>
-                    <td>{products[0].Name}</td>
+                    <td><a href=""http://steam_game.com/app/1234"" target=""_blank"">{products[0].Name}</a></td>
                     <td>{products[0].BasePrice.ToString("0.00", CultureInfo.InvariantCulture)}</td>
                     <td>{products[0].DiscountedPrice.ToString("0.00", CultureInfo.InvariantCulture)}</td>
                     <td>-{products[0].DiscountValue.ToString("0.00", CultureInfo.InvariantCulture)}</td>
@@ -56,7 +56,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
                 <tr>
                     <td>{products[1].StoreName}</td>
                     <td><img src=""{products[1].ImgUrl}""></img></td>
-                    <td>{products[1].Name}</td>
+                    <td><a href=""http://gog_game.com/app/4321"" target=""_blank"">{products[1].Name}</a></td>
                     <td>{products[1].BasePrice.ToString("0.00", CultureInfo.InvariantCulture)}</td>
                     <td>{products[1].DiscountedPrice.ToString("0.00", CultureInfo.InvariantCulture)}</td>
                     <td>-{products[1].DiscountValue.ToString("0.00", CultureInfo.InvariantCulture)}</td>
@@ -78,8 +78,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
                 .ThrowsAsync(exception);
             var products = new Product[]
             {
-                new SteamProduct("steam_game", 10, 5, "http://steam_game.com"),
-                new GogProduct("gog_game", 20, 7.5, "http://gog_game.com"),
+                new SteamProduct("steam_game", 10, 5, "http://steam_game.com", "http://steam_game.com/app/1234"),
+                new GogProduct("gog_game", 20, 7.5, "http://gog_game.com", "http://gog_game.com/app/4321"),
             };
 
             Task act() => _reportGenerator.GenerateReportAsync(products);

@@ -27,7 +27,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 name: "Red Dead Redemption 2",
                 basePrice: 249.9,
                 discountedPrice: 124.95,
-                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907");
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907",
+                url: "https://store.steampowered.com/app/1174180/Red_Dead_Redemption_2/?snr=1_7_7_2300_150_1");
             var response = new SteamGetDiscountedProductsResponse
             {
                 success = 1,
@@ -55,12 +56,14 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 name: "Red Dead Redemption 2",
                 basePrice: 249.9,
                 discountedPrice: 124.95,
-                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907");
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907",
+                url: "https://store.steampowered.com/app/1174180/Red_Dead_Redemption_2/?snr=1_7_7_2300_150_1");
             var expected99 = new SteamProduct(
                 name: "Forts - High Seas Bundle",
                 basePrice: 89.98,
                 discountedPrice: 56.68,
-                imgUrl: "https://cdn.akamai.steamstatic.com/steam/bundles/25294/46rchgr1oc1lro1n/capsule_sm_120.jpg?t=1647870827");
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/bundles/25294/46rchgr1oc1lro1n/capsule_sm_120.jpg?t=1647870827",
+                url: "https://store.steampowered.com/bundle/25294/Forts__High_Seas_Bundle/?snr=1_7_7_2300_150_1");
             var response = new SteamGetDiscountedProductsResponse
             {
                 success = 1,

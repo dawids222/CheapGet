@@ -8,7 +8,8 @@
             string name,
             double basePrice,
             double discountedPrice,
-            string imgUrl)
-            : base(name, basePrice, discountedPrice, imgUrl) { }
+            string imgUrl,
+            string url)
+            : base(name, basePrice, discountedPrice, imgUrl, url) { }
     }
 }

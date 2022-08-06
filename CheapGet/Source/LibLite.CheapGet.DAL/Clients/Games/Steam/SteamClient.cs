@@ -101,7 +101,9 @@ namespace LibLite.CheapGet.DAL.Clients.Games
                     ?.GetFirstChildWithName("img")
                     ?.GetAttributeValue("src", "");
 
-                yield return new SteamProduct(name, basePrice, discountedPrice, imgUrl);
+                var url = productRow.GetAttributeValue("href", "#");
+
+                yield return new SteamProduct(name, basePrice, discountedPrice, imgUrl, url);
             }
         }
     }
