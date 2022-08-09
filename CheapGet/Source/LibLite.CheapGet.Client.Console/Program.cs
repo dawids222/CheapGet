@@ -1,5 +1,4 @@
-﻿using DI_Lite;
-using LibLite.CheapGet.Business.Collections;
+﻿using LibLite.CheapGet.Business.Collections;
 using LibLite.CheapGet.Business.Services.Reports;
 using LibLite.CheapGet.Business.Services.Serializers;
 using LibLite.CheapGet.Business.Services.Stores;
@@ -14,6 +13,7 @@ using LibLite.CheapGet.Core.Stores.Models;
 using LibLite.CheapGet.DAL.Clients.Games;
 using LibLite.CheapGet.DAL.Clients.Games.GoG;
 using LibLite.CheapGet.DAL.Services;
+using LibLite.DI.Lite;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +21,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using StringRelationalOperator = LibLite.CheapGet.Core.Enums.StringRelationalOperator;
 
 Console.WriteLine("Hello World!");
 
