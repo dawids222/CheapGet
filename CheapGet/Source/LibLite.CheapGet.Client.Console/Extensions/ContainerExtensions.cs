@@ -1,4 +1,5 @@
-﻿using LibLite.CheapGet.Business.Services.Reports;
+﻿using LibLite.CheapGet.Business.Services.DSL;
+using LibLite.CheapGet.Business.Services.Reports;
 using LibLite.CheapGet.Business.Services.Serializers;
 using LibLite.CheapGet.Business.Services.Stores;
 using LibLite.CheapGet.Client.Console.Consts;
@@ -44,7 +45,17 @@ namespace LibLite.CheapGet.Client.Console.Extensions
                 return new StoreService(stores);
             });
 
-            container.Scoped<IApplication, TemporaryApplication>();
+            container.Scoped<IApplication, Application>();
+
+            container.Scoped<ILexer, Lexer>();
+            container.Scoped<IParser, Parser>();
+            container.Scoped<IInterpreter>(provider =>
+            {
+                return new Interpreter(
+                    provider.Get<IStoreService>(Tags.StoreServices.Games),
+                    provider.Get<IReportGenerator>(),
+                    provider.Get<IFileService>());
+            });
 
             var constructabilityReport = container.GetConstructabilityReport();
             if (!constructabilityReport.IsConstructable)
