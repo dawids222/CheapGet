@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace LibLite.CheapGet.Business.Tests.Services.DSL
 {
-    // TODO: Test that _position resets every time
     [TestFixture]
     public class LexerTests
     {
@@ -24,22 +23,20 @@ namespace LibLite.CheapGet.Business.Tests.Services.DSL
             CollectionAssert.AreEqual(test.Expected, result);
         }
 
-        private static IEnumerable<LexTestCase> _lexTestCases = new List<LexTestCase>
+        private static readonly IEnumerable<LexTestCase> _lexTestCases = new List<LexTestCase>
         {
             new LexTestCase
             {
-                Input = "select run",
+                Input = "select",
                 Expected = new List<Token>
                 {
                     new Token(TokenType.SELECT, "select", 0),
-                    new Token(TokenType.TERMINATOR, "run", 7),
-                    new Token(TokenType.EOF, "", 10),
+                    new Token(TokenType.EOF, "", 6),
                 },
             },
-
             new LexTestCase
             {
-                Input = @"select from ""Games"" filter ""base_price"" >= 49,99 sort ""name"" desc take 50 run",
+                Input = @"select from ""Games"" filter ""base_price"" >= 49,99 sort ""name"" desc take 50",
                 Expected = new List<Token>
                 {
                     new Token(TokenType.SELECT, "select", 0),
@@ -54,8 +51,102 @@ namespace LibLite.CheapGet.Business.Tests.Services.DSL
                     new Token(TokenType.SORT_DIRECTION, "desc", 61),
                     new Token(TokenType.TAKE, "take", 66),
                     new Token(TokenType.INTEGER, "50", 71),
-                    new Token(TokenType.TERMINATOR, "run", 74),
-                    new Token(TokenType.EOF, "", 77),
+                    new Token(TokenType.EOF, "", 73),
+                },
+            },
+            new LexTestCase
+            {
+                Input = "cls",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.CLS, "cls", 0),
+                    new Token(TokenType.EOF, "", 3),
+                },
+            },
+            new LexTestCase
+            {
+                Input = "exit",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.EXIT, "exit", 0),
+                    new Token(TokenType.EOF, "", 4),
+                },
+            },
+            new LexTestCase
+            {
+                Input = @"select from filter >= > = != <> < <= sort asc desc take ""text"" 1 1.1 2,2 cls exit",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.SELECT, "select", 0),
+                    new Token(TokenType.FROM, "from", 7),
+                    new Token(TokenType.FILTER, "filter", 12),
+                    new Token(TokenType.COMPARISON, ">=", 19),
+                    new Token(TokenType.COMPARISON, ">", 22),
+                    new Token(TokenType.COMPARISON, "=", 24),
+                    new Token(TokenType.COMPARISON, "!=", 26),
+                    new Token(TokenType.COMPARISON, "<>", 29),
+                    new Token(TokenType.COMPARISON, "<", 32),
+                    new Token(TokenType.COMPARISON, "<=", 34),
+                    new Token(TokenType.SORT, "sort", 37),
+                    new Token(TokenType.SORT_DIRECTION, "asc", 42),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 46),
+                    new Token(TokenType.TAKE, "take", 51),
+                    new Token(TokenType.TEXT, "text", 56),
+                    new Token(TokenType.INTEGER, "1", 63),
+                    new Token(TokenType.DECIMAL, "1,1", 65),
+                    new Token(TokenType.DECIMAL, "2,2", 69),
+                    new Token(TokenType.CLS, "cls", 73),
+                    new Token(TokenType.EXIT, "exit", 77),
+                    new Token(TokenType.EOF, "", 81),
+                },
+            },
+            new LexTestCase
+            {
+                Input = @"sELEct FROM FilteR >= > = != <> < <= sOrT aSc DeSc TAke ""tExT"" 1 1.1 2,2 cLS ExIt",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.SELECT, "sELEct", 0),
+                    new Token(TokenType.FROM, "FROM", 7),
+                    new Token(TokenType.FILTER, "FilteR", 12),
+                    new Token(TokenType.COMPARISON, ">=", 19),
+                    new Token(TokenType.COMPARISON, ">", 22),
+                    new Token(TokenType.COMPARISON, "=", 24),
+                    new Token(TokenType.COMPARISON, "!=", 26),
+                    new Token(TokenType.COMPARISON, "<>", 29),
+                    new Token(TokenType.COMPARISON, "<", 32),
+                    new Token(TokenType.COMPARISON, "<=", 34),
+                    new Token(TokenType.SORT, "sOrT", 37),
+                    new Token(TokenType.SORT_DIRECTION, "aSc", 42),
+                    new Token(TokenType.SORT_DIRECTION, "DeSc", 46),
+                    new Token(TokenType.TAKE, "TAke", 51),
+                    new Token(TokenType.TEXT, "tExT", 56),
+                    new Token(TokenType.INTEGER, "1", 63),
+                    new Token(TokenType.DECIMAL, "1,1", 65),
+                    new Token(TokenType.DECIMAL, "2,2", 69),
+                    new Token(TokenType.CLS, "cLS", 73),
+                    new Token(TokenType.EXIT, "ExIt", 77),
+                    new Token(TokenType.EOF, "", 81),
+                },
+            },
+            new LexTestCase
+            {
+                Input = @"""text with   whitespaces""",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.TEXT, "text with   whitespaces", 0),
+                    new Token(TokenType.EOF, "", 25),
+                },
+            },
+            new LexTestCase
+            {
+                Input = @"select sort  ""name""    asc",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.SELECT, "select", 0),
+                    new Token(TokenType.SORT, "sort", 7),
+                    new Token(TokenType.TEXT, "name", 13),
+                    new Token(TokenType.SORT_DIRECTION, "asc", 23),
+                    new Token(TokenType.EOF, "", 26),
                 },
             },
         };
