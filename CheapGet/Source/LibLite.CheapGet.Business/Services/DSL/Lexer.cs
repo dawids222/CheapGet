@@ -7,6 +7,7 @@ namespace LibLite.CheapGet.Business.Services.DSL
         // TODO: Move all keywords to consts
         // TODO: Move other classes to separate files
         // TODO: Move this class to another project?
+        // TODO: Implement HELP
         private readonly string[] SORT_DIRECTION_TOKENS = new[] { "asc", "desc" };
         private readonly string[] COMPARISON_TOKENS = new[] { ">", ">=", "=", "!=", "<=", "<", "<>" };
 
@@ -45,7 +46,7 @@ namespace LibLite.CheapGet.Business.Services.DSL
             if (lowerToken == "exit") return TokenType.EXIT;
             if (IsSortDirectionToken(lowerToken)) return TokenType.SORT_DIRECTION;
             if (IsComparisonToken(lowerToken)) return TokenType.COMPARISON;
-            if (IsDecimalToken(lowerToken)) return TokenType.DECIMAL;
+            if (IsDecimalToken(lowerToken)) return TokenType.FLOATING;
             if (IsIntegerToken(lowerToken)) return TokenType.INTEGER;
             if (IsTextToken(token)) return TokenType.TEXT;
             throw new NotImplementedException($"'{token}' at position {position} is not recognised as a valid token."); // TODO: Add dedicated exception specifying value and position
@@ -65,7 +66,7 @@ namespace LibLite.CheapGet.Business.Services.DSL
             return type switch
             {
                 TokenType.TEXT => GetSubstringBetweenFurtherest(token, '"'),
-                TokenType.DECIMAL => token.Replace('.', ','),
+                TokenType.FLOATING => token.Replace('.', ','),
                 _ => token,
             };
         }
@@ -121,7 +122,7 @@ namespace LibLite.CheapGet.Business.Services.DSL
         SORT_DIRECTION,
         COMPARISON,
         TEXT,
-        DECIMAL,
+        FLOATING,
         INTEGER,
         CLS,
         EXIT,

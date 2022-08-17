@@ -1,10 +1,14 @@
-﻿namespace LibLite.CheapGet.Business.Services.DSL
+﻿using LibLite.CheapGet.Business.Exceptions.DSL;
+
+namespace LibLite.CheapGet.Business.Services.DSL
 {
     // TODO: Add MORE erorr handling!
     public class Parser : IParser
     {
-        private static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.CLS, TokenType.EXIT };
-        private static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.DECIMAL };
+        // TODO: Move
+        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.CLS, TokenType.EXIT };
+        public static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.FLOATING };
+        public static readonly TokenType[] SELECT_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.EOF };
 
         private List<Token> _tokens;
 
@@ -24,9 +28,12 @@
                 TokenType.FILTER => ParseFilter(token),
                 TokenType.SORT => ParseSort(token),
                 TokenType.TAKE => ParseTake(token),
+                TokenType.TEXT => ParseText(token),
+                TokenType.INTEGER => ParseInteger(token),
+                TokenType.FLOATING => ParseFloating(token),
                 TokenType.CLS => ParseCls(token),
                 TokenType.EXIT => ParseExit(token),
-                _ => throw new Exception("ERROR!"), // TODO: Provide meaninigful error
+                _ => throw new TokenNotSupportedException(token),
             };
         }
 
@@ -35,9 +42,7 @@
             var token = _tokens.First();
             if (token.Type != type)
             {
-                // TODO: Add decicated exception
-                var message = $"Expected token type '{type}' but got '{token.Type}' at position {token.Position}";
-                throw new Exception(message);
+                throw new UnexpectedTokenException(token, type);
             }
             _tokens.RemoveAt(0);
             return token;
@@ -48,20 +53,18 @@
             var token = _tokens.First();
             if (!types.Contains(token.Type))
             {
-                // TODO: Add decicated exception
-                var message = $"Expected token type '{string.Join(", ", types)}' but got '{token.Type}' at position {token.Position}";
-                throw new Exception(message);
+                throw new UnexpectedTokenException(token, types);
             }
             _tokens.RemoveAt(0);
             return token;
         }
 
-        private Select ParseSelect(Token select)
+        private Select ParseSelect(Token _)
         {
             var result = new Select();
             while (true)
             {
-                var token = Eat(new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.EOF });
+                var token = Eat(SELECT_EXPECTED_TOKEN_TYPES);
                 if (token.Type == TokenType.EOF) { break; }
 
                 var expression = Parse(token);
@@ -74,13 +77,13 @@
             return result;
         }
 
-        private From ParseFrom(Token from)
+        private From ParseFrom(Token _)
         {
             var text = Eat(TokenType.TEXT);
             return new From(new Text(text.Value));
         }
 
-        private Filter ParseFilter(Token filter)
+        private Filter ParseFilter(Token _) // TODO: Validate property, comaprison and value
         {
             var property = Eat(TokenType.TEXT);
             var comparison = Eat(TokenType.COMPARISON);
@@ -92,7 +95,7 @@
                 value);
         }
 
-        private Sort ParseSort(Token sort)
+        private Sort ParseSort(Token _) // TODO: Validate property
         {
             var property = Eat(TokenType.TEXT);
             var direction = Eat(TokenType.SORT_DIRECTION);
@@ -101,21 +104,19 @@
                 new SortDirection(direction.Value));
         }
 
-        private Take ParseTake(Token take)
+        private Take ParseTake(Token _)
         {
             var value = Eat(TokenType.INTEGER);
             return new Take(new Integer(int.Parse(value.Value)));
         }
 
-        private static Literal ParseLiteral(Token token)
+        private Literal ParseLiteral(Token token)
         {
-            return token.Type switch
+            if (!LITERAL_TOKEN_TYPES.Contains(token.Type))
             {
-                TokenType.TEXT => ParseText(token),
-                TokenType.INTEGER => ParseInteger(token),
-                TokenType.DECIMAL => ParseDecimal(token),
-                _ => throw new Exception("ERROR!"), // TODO: Provide meaningful error
-            };
+                throw new UnexpectedTokenException(token, LITERAL_TOKEN_TYPES);
+            }
+            return Parse(token) as Literal;
         }
 
         private static Text ParseText(Token text)
@@ -125,21 +126,23 @@
 
         private static Integer ParseInteger(Token integer)
         {
-            return new Integer(int.Parse(integer.Value));
+            var value = int.Parse(integer.Value);
+            return new Integer(value);
         }
 
-        private static Decimal ParseDecimal(Token @decimal)
+        private static Floating ParseFloating(Token floating)
         {
-            return new Decimal(double.Parse(@decimal.Value));
+            var value = double.Parse(floating.Value);
+            return new Floating(value);
         }
 
-        private Cls ParseCls(Token cls)
+        private Cls ParseCls(Token _)
         {
             Eat(TokenType.EOF);
             return new Cls();
         }
 
-        private Exit ParseExit(Token exit)
+        private Exit ParseExit(Token _)
         {
             Eat(TokenType.EOF);
             return new Exit();
@@ -154,6 +157,20 @@
         public Take Take { get; set; } = new Take(new Integer(100));
         public List<Filter> Filters { get; set; } = new();
         public List<Sort> Sorts { get; set; } = new();
+
+        public override bool Equals(object obj)
+        {
+            return obj is Select select &&
+                   EqualityComparer<From>.Default.Equals(From, select.From) &&
+                   EqualityComparer<Take>.Default.Equals(Take, select.Take) &&
+                   Filters.SequenceEqual(select.Filters) &&
+                   Sorts.SequenceEqual(select.Sorts);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(From, Take, Filters, Sorts);
+        }
     }
 
     public class From : Expression
@@ -163,6 +180,17 @@
         public From(Text text)
         {
             Text = text;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is From from &&
+                   EqualityComparer<Text>.Default.Equals(Text, from.Text);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Text);
         }
     }
 
@@ -178,6 +206,19 @@
             Comparison = comparison;
             Value = value;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Filter filter &&
+                   EqualityComparer<Text>.Default.Equals(Property, filter.Property) &&
+                   EqualityComparer<Comparison>.Default.Equals(Comparison, filter.Comparison) &&
+                   EqualityComparer<Literal>.Default.Equals(Value, filter.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Property, Comparison, Value);
+        }
     }
 
     public class Sort : Expression
@@ -190,6 +231,18 @@
             Property = property;
             Direction = direction;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Sort sort &&
+                   EqualityComparer<Text>.Default.Equals(Property, sort.Property) &&
+                   EqualityComparer<SortDirection>.Default.Equals(Direction, sort.Direction);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Property, Direction);
+        }
     }
 
     public class Take : Expression
@@ -199,6 +252,17 @@
         public Take(Integer value)
         {
             Value = value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Take take &&
+                   EqualityComparer<Integer>.Default.Equals(Value, take.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value);
         }
     }
 
@@ -210,6 +274,17 @@
         {
             Value = value;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is SortDirection direction &&
+                   Value == direction.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value);
+        }
     }
 
     public class Comparison : Expression
@@ -220,6 +295,17 @@
         {
             Value = value;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Comparison comparison &&
+                   Value == comparison.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value);
+        }
     }
 
     public abstract class Literal : Expression
@@ -228,7 +314,7 @@
 
         public Text AsText() => this as Text;
         public Integer AsInteger() => this as Integer;
-        public Decimal AsDecimal() => this as Decimal;
+        public Floating AsDecimal() => this as Floating;
     }
 
     public class Text : Literal
@@ -241,17 +327,41 @@
         {
             Value = value;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Text text &&
+                   Type == text.Type &&
+                   Value == text.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Type, Value);
+        }
     }
 
-    public class Decimal : Literal
+    public class Floating : Literal // TODO: Consider a better name...
     {
-        public override TokenType Type => TokenType.DECIMAL;
+        public override TokenType Type => TokenType.FLOATING;
 
         public double Value { get; set; }
 
-        public Decimal(double value)
+        public Floating(double value)
         {
             Value = value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Floating @decimal &&
+                   Type == @decimal.Type &&
+                   Value == @decimal.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Value);
         }
     }
 
@@ -265,9 +375,44 @@
         {
             Value = value;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Integer integer &&
+                   Type == integer.Type &&
+                   Value == integer.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Value);
+        }
     }
 
-    public class Cls : Expression { }
+    public class Cls : Expression
+    {
 
-    public class Exit : Expression { }
+        public override bool Equals(object obj)
+        {
+            return obj is Cls;
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class Exit : Expression
+    {
+        public override bool Equals(object obj)
+        {
+            return obj is Exit;
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

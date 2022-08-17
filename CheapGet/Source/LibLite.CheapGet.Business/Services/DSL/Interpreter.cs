@@ -70,7 +70,7 @@ namespace LibLite.CheapGet.Business.Services.DSL
                 {
                     TokenType.TEXT => CreateStringFilter(filter.Property.Value, ToStringRelationalOperator(filter.Comparison.Value), filter.Value.AsText().Value),
                     TokenType.INTEGER => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsInteger().Value),
-                    TokenType.DECIMAL => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsDecimal().Value),
+                    TokenType.FLOATING => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsDecimal().Value),
                     _ => throw new NotImplementedException(),
                 };
             };

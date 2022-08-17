@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace LibLite.CheapGet.Business.Tests.Services.DSL
 {
+    // TODO: Add unexpected token test
     [TestFixture]
     public class LexerTests
     {
@@ -45,7 +46,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.DSL
                     new Token(TokenType.FILTER, "filter", 20),
                     new Token(TokenType.TEXT, "base_price", 27),
                     new Token(TokenType.COMPARISON, ">=", 40),
-                    new Token(TokenType.DECIMAL, "49,99", 43),
+                    new Token(TokenType.FLOATING, "49,99", 43),
                     new Token(TokenType.SORT, "sort", 49),
                     new Token(TokenType.TEXT, "name", 54),
                     new Token(TokenType.SORT_DIRECTION, "desc", 61),
@@ -93,8 +94,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.DSL
                     new Token(TokenType.TAKE, "take", 51),
                     new Token(TokenType.TEXT, "text", 56),
                     new Token(TokenType.INTEGER, "1", 63),
-                    new Token(TokenType.DECIMAL, "1,1", 65),
-                    new Token(TokenType.DECIMAL, "2,2", 69),
+                    new Token(TokenType.FLOATING, "1,1", 65),
+                    new Token(TokenType.FLOATING, "2,2", 69),
                     new Token(TokenType.CLS, "cls", 73),
                     new Token(TokenType.EXIT, "exit", 77),
                     new Token(TokenType.EOF, "", 81),
@@ -121,8 +122,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.DSL
                     new Token(TokenType.TAKE, "TAke", 51),
                     new Token(TokenType.TEXT, "tExT", 56),
                     new Token(TokenType.INTEGER, "1", 63),
-                    new Token(TokenType.DECIMAL, "1,1", 65),
-                    new Token(TokenType.DECIMAL, "2,2", 69),
+                    new Token(TokenType.FLOATING, "1,1", 65),
+                    new Token(TokenType.FLOATING, "2,2", 69),
                     new Token(TokenType.CLS, "cLS", 73),
                     new Token(TokenType.EXIT, "ExIt", 77),
                     new Token(TokenType.EOF, "", 81),
