@@ -2,11 +2,11 @@
 
 namespace LibLite.CheapGet.Business.Exceptions.DSL
 {
-    public class TokenNotSupportedException : Exception
+    public class UnsupportedTokenException : Exception
     {
         public Token Token { get; }
 
-        public TokenNotSupportedException(Token token)
+        public UnsupportedTokenException(Token token)
             : base($"{token.Value} of type '{token.Type}' currently is not supported")
         {
             Token = token;

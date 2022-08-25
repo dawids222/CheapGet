@@ -1,4 +1,6 @@
 ﻿using LibLite.CheapGet.Business.Collections;
+using LibLite.CheapGet.Business.Consts.CGQL;
+using LibLite.CheapGet.Business.Exceptions.DSL;
 using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Services;
@@ -10,16 +12,16 @@ namespace LibLite.CheapGet.Business.Services.DSL
 {
     public class Interpreter : IInterpreter
     {
-        private readonly IStoreService _storeService;
+        private readonly IDictionary<string, IStoreService> _storeServices;
         private readonly IReportGenerator _reportGenerator;
         private readonly IFileService _fileService;
 
         public Interpreter(
-            IStoreService storeService, // TODO: FROM keyword won't work with this approach...
+            IDictionary<string, IStoreService> storeServices,
             IReportGenerator reportGenerator,
             IFileService fileService)
         {
-            _storeService = storeService;
+            _storeServices = storeServices;
             _reportGenerator = reportGenerator;
             _fileService = fileService;
         }
@@ -28,24 +30,44 @@ namespace LibLite.CheapGet.Business.Services.DSL
         {
             return expression switch
             {
-                Select select => SelectAsync(select),
-                Cls => ClearScreenAsync(),
-                Exit => ExitAsync(),
-                _ => throw new Exception("Error"), // TODO: Provide meaningful error
+                Select select => InterpretSelectAsync(select),
+                Cls => InterpretClsAsync(),
+                Exit => InterpretExitAsync(),
+                _ => throw new UnsupportedExpressionException(expression),
             };
         }
 
-        private async Task SelectAsync(Select select)
+        private async Task InterpretSelectAsync(Select select)
         {
-            var take = select.Take.Value.Value;
-            var filters = GetFilters(select.Filters);
-            var sorts = GetSorts(select.Sorts);
+            var products = await GetProductsAsync(select);
+            await DisplayReportAsync(products);
+        }
 
-            var parameters = new GetProductsRequest(take, filters, sorts);
-            var products = await _storeService.GetDiscountedProductsAsync(parameters, CancellationToken.None);
+        private Task<IEnumerable<Product>> GetProductsAsync(Select select)
+        {
+            var count = select.Take.Value.Value;
+            var filters = InterpretFilter(select.Filters);
+            var sorts = InterpretSort(select.Sorts);
+            var from = select.From.Text.Value;
+
+            var storeService = _storeServices[from];
+            var parameters = new GetProductsRequest(count, filters, sorts);
+            return storeService.GetDiscountedProductsAsync(parameters, CancellationToken.None);
+        }
+
+        private async Task DisplayReportAsync(IEnumerable<Product> products)
+        {
             var report = await _reportGenerator.GenerateReportAsync(products);
-            // TODO: This probably should be abstracted..
-            var file = new FileModel
+            var file = CreateReportFile(report);
+            await _fileService.SaveAsync(file);
+            _fileService.Open(file);
+            await Task.Delay(1000);
+            _fileService.Delete(file);
+        }
+
+        private static FileModel CreateReportFile(Report report)
+        {
+            return new FileModel
             {
                 Path = $"{Directory.GetCurrentDirectory()}\\Reports",
                 Name = DateTime.Now.ToString("yyyy-MM-ddTHH.mm.ss.fffffff"),
@@ -56,23 +78,23 @@ namespace LibLite.CheapGet.Business.Services.DSL
                 },
                 Content = report.GetBytes(),
             };
-            await _fileService.SaveAsync(file);
-            _fileService.Open(file);
-            await Task.Delay(1000);
-            _fileService.Delete(file);
         }
 
-        private static IEnumerable<ICollectionFilter<Product>> GetFilters(IEnumerable<Filter> filters)
+        private static IEnumerable<ICollectionFilter<Product>> InterpretFilter(IEnumerable<Filter> filters)
         {
-            foreach (var filter in filters)
+            return filters
+                .Select(InterpretFilter)
+                .ToList();
+        }
+
+        private static ICollectionFilter<Product> InterpretFilter(Filter filter)
+        {
+            return filter.Value.Type switch
             {
-                yield return filter.Value.Type switch
-                {
-                    TokenType.TEXT => CreateStringFilter(filter.Property.Value, ToStringRelationalOperator(filter.Comparison.Value), filter.Value.AsText().Value),
-                    TokenType.INTEGER => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsInteger().Value),
-                    TokenType.FLOATING => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsDecimal().Value),
-                    _ => throw new NotImplementedException(),
-                };
+                TokenType.TEXT => CreateStringFilter(filter.Property.Value, ToStringRelationalOperator(filter.Comparison.Value), filter.Value.AsText().Value),
+                TokenType.INTEGER => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsInteger().Value),
+                TokenType.FLOATING => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsDecimal().Value),
+                _ => throw new NotImplementedException(),
             };
         }
 
@@ -80,10 +102,10 @@ namespace LibLite.CheapGet.Business.Services.DSL
         {
             return name switch
             {
-                "base_price" => new CollectionDoubleFilter<Product>(x => x.BasePrice, @operator, value),
-                "discounted_price" => new CollectionDoubleFilter<Product>(x => x.DiscountedPrice, @operator, value),
-                "discount_percentage" => new CollectionDoubleFilter<Product>(x => x.DiscountPercentage, @operator, value),
-                "discount_value" => new CollectionDoubleFilter<Product>(x => x.DiscountValue, @operator, value),
+                Properties.BASE_PRICE => new CollectionDoubleFilter<Product>(x => x.BasePrice, @operator, value),
+                Properties.DISCOUNTED_PRICE => new CollectionDoubleFilter<Product>(x => x.DiscountedPrice, @operator, value),
+                Properties.DISCOUNT_PERCENTAGE => new CollectionDoubleFilter<Product>(x => x.DiscountPercentage, @operator, value),
+                Properties.DISCOUNT_VALUE => new CollectionDoubleFilter<Product>(x => x.DiscountValue, @operator, value),
                 _ => throw new NotImplementedException(),
             };
         }
@@ -92,8 +114,8 @@ namespace LibLite.CheapGet.Business.Services.DSL
         {
             return name switch
             {
-                "name" => new CollectionStringFilter<Product>(x => x.Name, operation, value),
-                "store_name" => new CollectionStringFilter<Product>(x => x.StoreName, operation, value),
+                Properties.NAME => new CollectionStringFilter<Product>(x => x.Name, operation, value),
+                Properties.STORE_NAME => new CollectionStringFilter<Product>(x => x.StoreName, operation, value),
                 _ => throw new NotImplementedException(),
             };
         }
@@ -102,8 +124,8 @@ namespace LibLite.CheapGet.Business.Services.DSL
         {
             return value switch
             {
-                "=" => StringRelationalOperator.EQUAL,
-                "<>" => StringRelationalOperator.CONTAIN,
+                Operators.EQUAL => StringRelationalOperator.EQUAL,
+                Operators.CONTAIN => StringRelationalOperator.CONTAIN,
                 _ => throw new NotImplementedException(),
             };
         }
@@ -112,44 +134,50 @@ namespace LibLite.CheapGet.Business.Services.DSL
         {
             return value switch
             {
-                ">=" => NumberRelationalOperator.GREATER_OR_EQUAL,
-                ">" => NumberRelationalOperator.GREATER,
-                "=" => NumberRelationalOperator.EQUAL,
-                "!=" => NumberRelationalOperator.NOT_EQUAL,
-                "<" => NumberRelationalOperator.LESS,
-                "<=" => NumberRelationalOperator.LESS_OR_EQUAL,
+                Operators.GREATER_OR_EQUAL => NumberRelationalOperator.GREATER_OR_EQUAL,
+                Operators.GREATER => NumberRelationalOperator.GREATER,
+                Operators.EQUAL => NumberRelationalOperator.EQUAL,
+                Operators.NOT_EQUAL => NumberRelationalOperator.NOT_EQUAL,
+                Operators.LESS => NumberRelationalOperator.LESS,
+                Operators.LESS_OR_EQUAL => NumberRelationalOperator.LESS_OR_EQUAL,
                 _ => throw new NotImplementedException(),
             };
         }
 
-        private static IEnumerable<ICollectionSort<Product>> GetSorts(IEnumerable<Sort> sorts)
+        private static IEnumerable<ICollectionSort<Product>> InterpretSort(IEnumerable<Sort> sorts)
         {
-            foreach (var sort in sorts)
-            {
-                var name = sort.Property.Value;
-                var direction = sort.Direction.Value.ToLower() == "asc"
-                    ? Core.Enums.SortDirection.ASC
-                    : Core.Enums.SortDirection.DESC;
-                yield return name switch
-                {
-                    // TODO: Move those literals to consts?
-                    "store_name" => new CollectionSort<Product, string>(x => x.StoreName, direction),
-                    "name" => new CollectionSort<Product, string>(x => x.Name, direction),
-                    "base_price" => new CollectionSort<Product, double>(x => x.BasePrice, direction),
-                    "discounted_price" => new CollectionSort<Product, double>(x => x.DiscountedPrice, direction),
-                    "discount_percentage" => new CollectionSort<Product, double>(x => x.DiscountPercentage, direction),
-                    "discount_value" => new CollectionSort<Product, double>(x => x.DiscountValue, direction),
-                    _ => throw new NotImplementedException(),
-                };
-            }
+            return sorts
+                .Select(InterpretSort)
+                .ToList();
         }
 
-        private static Task ClearScreenAsync()
+        private static ICollectionSort<Product> InterpretSort(Sort sort)
+        {
+            var name = sort.Property.Value;
+            var value = sort.Direction.Value.ToLower();
+            var asc = SortDirections.ASC.ToLower();
+            var direction = value == asc
+                ? Core.Enums.SortDirection.ASC
+                : Core.Enums.SortDirection.DESC;
+
+            return name switch
+            {
+                Properties.STORE_NAME => new CollectionSort<Product, string>(x => x.StoreName, direction),
+                Properties.NAME => new CollectionSort<Product, string>(x => x.Name, direction),
+                Properties.BASE_PRICE => new CollectionSort<Product, double>(x => x.BasePrice, direction),
+                Properties.DISCOUNTED_PRICE => new CollectionSort<Product, double>(x => x.DiscountedPrice, direction),
+                Properties.DISCOUNT_PERCENTAGE => new CollectionSort<Product, double>(x => x.DiscountPercentage, direction),
+                Properties.DISCOUNT_VALUE => new CollectionSort<Product, double>(x => x.DiscountValue, direction),
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        private static Task InterpretClsAsync()
         {
             return Task.Run(() => Console.Clear());
         }
 
-        private static Task ExitAsync()
+        private static Task InterpretExitAsync()
         {
             return Task.Run(() => Environment.Exit(0));
         }

@@ -33,7 +33,7 @@ namespace LibLite.CheapGet.Business.Services.DSL
                 TokenType.FLOATING => ParseFloating(token),
                 TokenType.CLS => ParseCls(token),
                 TokenType.EXIT => ParseExit(token),
-                _ => throw new TokenNotSupportedException(token),
+                _ => throw new UnsupportedTokenException(token),
             };
         }
 

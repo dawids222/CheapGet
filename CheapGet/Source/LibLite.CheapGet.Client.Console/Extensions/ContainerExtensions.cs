@@ -13,6 +13,7 @@ using LibLite.CheapGet.DAL.Clients.Games.GoG;
 using LibLite.CheapGet.DAL.Services;
 using LibLite.DI.Lite;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LibLite.CheapGet.Client.Console.Extensions
@@ -45,17 +46,22 @@ namespace LibLite.CheapGet.Client.Console.Extensions
                 return new StoreService(stores);
             });
 
-            container.Scoped<IApplication, Application>();
+            container.Scoped<IDictionary<string, IStoreService>>(provider =>
+            {
+                return new Dictionary<string, IStoreService>()
+                {
+                    {
+                        Tags.StoreServices.Games,
+                        provider.Get<IStoreService>(Tags.StoreServices.Games)
+                    },
+                };
+            });
 
             container.Scoped<ILexer, Lexer>();
             container.Scoped<IParser, Parser>();
-            container.Scoped<IInterpreter>(provider =>
-            {
-                return new Interpreter(
-                    provider.Get<IStoreService>(Tags.StoreServices.Games),
-                    provider.Get<IReportGenerator>(),
-                    provider.Get<IFileService>());
-            });
+            container.Scoped<IInterpreter, Interpreter>();
+
+            container.Scoped<IApplication, Application>();
 
             var constructabilityReport = container.GetConstructabilityReport();
             if (!constructabilityReport.IsConstructable)
