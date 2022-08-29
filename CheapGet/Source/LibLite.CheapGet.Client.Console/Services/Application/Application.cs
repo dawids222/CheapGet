@@ -1,4 +1,4 @@
-﻿using LibLite.CheapGet.Business.Services.DSL;
+﻿using LibLite.CheapGet.Core.CGQL.Services;
 using System;
 using System.Threading.Tasks;
 

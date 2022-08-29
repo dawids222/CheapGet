@@ -1,9 +1,10 @@
-﻿using LibLite.CheapGet.Business.Services.DSL;
+﻿using LibLite.CheapGet.Business.Services.CGQL;
 using LibLite.CheapGet.Business.Services.Reports;
 using LibLite.CheapGet.Business.Services.Serializers;
 using LibLite.CheapGet.Business.Services.Stores;
 using LibLite.CheapGet.Client.Console.Consts;
 using LibLite.CheapGet.Client.Console.Services.Application;
+using LibLite.CheapGet.Core.CGQL.Services;
 using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.GoG;

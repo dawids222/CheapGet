@@ -1,11 +1,14 @@
 ﻿using LibLite.CheapGet.Business.Exceptions.DSL;
-using LibLite.CheapGet.Business.Services.DSL;
+using LibLite.CheapGet.Business.Services.CGQL;
+using LibLite.CheapGet.Core.CGQL.Enums;
+using LibLite.CheapGet.Core.CGQL.Expressions;
+using LibLite.CheapGet.Core.CGQL.Models;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LibLite.CheapGet.Business.Tests.Services.DSL
+namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 {
     [TestFixture]
     public class ParserTests

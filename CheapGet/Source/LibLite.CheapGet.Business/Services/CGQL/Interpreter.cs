@@ -1,6 +1,9 @@
 ﻿using LibLite.CheapGet.Business.Collections;
 using LibLite.CheapGet.Business.Consts.CGQL;
 using LibLite.CheapGet.Business.Exceptions.DSL;
+using LibLite.CheapGet.Core.CGQL.Enums;
+using LibLite.CheapGet.Core.CGQL.Expressions;
+using LibLite.CheapGet.Core.CGQL.Services;
 using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Services;
@@ -8,7 +11,7 @@ using LibLite.CheapGet.Core.Services.Models;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Models;
 
-namespace LibLite.CheapGet.Business.Services.DSL
+namespace LibLite.CheapGet.Business.Services.CGQL
 {
     public class Interpreter : IInterpreter
     {

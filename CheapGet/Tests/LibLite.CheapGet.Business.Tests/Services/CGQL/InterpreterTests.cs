@@ -1,11 +1,11 @@
-﻿using LibLite.CheapGet.Business.Services.DSL;
+﻿using LibLite.CheapGet.Business.Services.CGQL;
 using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
 using Moq;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace LibLite.CheapGet.Business.Tests.Services.DSL
+namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 {
     [TestFixture]
     public class InterpreterTests

@@ -1,8 +1,10 @@
-﻿using LibLite.CheapGet.Business.Services.DSL;
+﻿using LibLite.CheapGet.Business.Services.CGQL;
+using LibLite.CheapGet.Core.CGQL.Enums;
+using LibLite.CheapGet.Core.CGQL.Models;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace LibLite.CheapGet.Business.Tests.Services.DSL
+namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 {
     // TODO: Add unexpected token test
     [TestFixture]

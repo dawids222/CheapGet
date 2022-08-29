@@ -1,16 +1,14 @@
-﻿using System.Text.RegularExpressions;
+﻿using LibLite.CheapGet.Business.Consts.CGQL;
+using LibLite.CheapGet.Core.CGQL.Enums;
+using LibLite.CheapGet.Core.CGQL.Models;
+using LibLite.CheapGet.Core.CGQL.Services;
+using System.Text.RegularExpressions;
 
-namespace LibLite.CheapGet.Business.Services.DSL
+namespace LibLite.CheapGet.Business.Services.CGQL
 {
+    // TODO: Implement HELP
     public class Lexer : ILexer
     {
-        // TODO: Move all keywords to consts
-        // TODO: Move other classes to separate files
-        // TODO: Move this class to another project?
-        // TODO: Implement HELP
-        private readonly string[] SORT_DIRECTION_TOKENS = new[] { "asc", "desc" };
-        private readonly string[] COMPARISON_TOKENS = new[] { ">", ">=", "=", "!=", "<=", "<", "<>" };
-
         public IEnumerable<Token> Lex(string input)
         {
             var position = 0;
@@ -34,8 +32,9 @@ namespace LibLite.CheapGet.Business.Services.DSL
                 .ToList();
         }
 
-        private TokenType GetTokenType(string token, int position)
+        private static TokenType GetTokenType(string token, int position)
         {
+            // TODO: Move literals to consts
             var lowerToken = token.ToLower();
             if (lowerToken == "select") return TokenType.SELECT;
             if (lowerToken == "from") return TokenType.FROM;
@@ -52,12 +51,12 @@ namespace LibLite.CheapGet.Business.Services.DSL
             throw new NotImplementedException($"'{token}' at position {position} is not recognised as a valid token."); // TODO: Add dedicated exception specifying value and position
         }
 
-        private bool IsSortDirectionToken(string token) => SORT_DIRECTION_TOKENS.Contains(token);
-        private bool IsComparisonToken(string token) => COMPARISON_TOKENS.Contains(token);
+        private static bool IsSortDirectionToken(string token) => SortDirections.ALL.Contains(token);
+        private static bool IsComparisonToken(string token) => Operators.ALL.Contains(token);
         private static bool IsDecimalToken(string token) => (token.Contains('.') || token.Contains(',')) && double.TryParse(token.Replace('.', ','), out var _);
         private static bool IsIntegerToken(string token) => int.TryParse(token, out var _);
-        private static bool ContainsTwoUnescapedQuotationMarks(string token) => Regex.Matches(token, @"(?<!\\)\""").Count == 2;
         private static bool IsTextToken(string token) => ContainsTwoUnescapedQuotationMarks(token) && token.StartsWith('"') && token.EndsWith('"');
+        private static bool ContainsTwoUnescapedQuotationMarks(string token) => Regex.Matches(token, @"(?<!\\)\""").Count == 2;
         private static string GetSubstringBetweenFurtherest(string value, char character) => GetSubstringBetweenFurtherest(value, character, character);
         private static string GetSubstringBetweenFurtherest(string value, char start, char end) => Regex.Match(value, $@"\{start}(.*[^{end}]*)\{end}").Groups[1].Value.Replace("\"", "");
 
@@ -78,54 +77,5 @@ namespace LibLite.CheapGet.Business.Services.DSL
                 .Count();
             return token.Length + whitespace;
         }
-    }
-
-    public class Token
-    {
-        public TokenType Type { get; }
-        public string Value { get; }
-        public int Position { get; }
-
-        public Token(TokenType type, string value, int position)
-        {
-            Type = type;
-            Value = value;
-            Position = position;
-        }
-
-        public static Token EOF(int lenght)
-        {
-            return new Token(TokenType.EOF, "", lenght);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Token token &&
-                   Type == token.Type &&
-                   Value == token.Value &&
-                   Position == token.Position;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Type, Value, Position);
-        }
-    }
-
-    public enum TokenType
-    {
-        SELECT,
-        FROM,
-        FILTER,
-        SORT,
-        TAKE,
-        SORT_DIRECTION,
-        COMPARISON,
-        TEXT,
-        FLOATING,
-        INTEGER,
-        CLS,
-        EXIT,
-        EOF,
     }
 }

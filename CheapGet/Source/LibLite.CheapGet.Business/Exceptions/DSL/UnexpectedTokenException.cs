@@ -1,4 +1,5 @@
-﻿using LibLite.CheapGet.Business.Services.DSL;
+﻿using LibLite.CheapGet.Core.CGQL.Enums;
+using LibLite.CheapGet.Core.CGQL.Models;
 
 namespace LibLite.CheapGet.Business.Exceptions.DSL
 {
