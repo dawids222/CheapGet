@@ -25,7 +25,7 @@
             NAME,
         };
 
-        public static readonly IEnumerable<string> DECIMAL_PROPERTIES = new[]
+        public static readonly IEnumerable<string> NUMERIC_PROPERTIES = new[]
         {
             BASE_PRICE,
             DISCOUNTED_PRICE,

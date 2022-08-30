@@ -127,8 +127,8 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         {
             return value switch
             {
-                Operators.EQUAL => StringRelationalOperator.EQUAL,
-                Operators.CONTAIN => StringRelationalOperator.CONTAIN,
+                Comparisons.EQUAL => StringRelationalOperator.EQUAL,
+                Comparisons.CONTAIN => StringRelationalOperator.CONTAIN,
                 _ => throw new NotImplementedException(),
             };
         }
@@ -137,12 +137,12 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         {
             return value switch
             {
-                Operators.GREATER_OR_EQUAL => NumberRelationalOperator.GREATER_OR_EQUAL,
-                Operators.GREATER => NumberRelationalOperator.GREATER,
-                Operators.EQUAL => NumberRelationalOperator.EQUAL,
-                Operators.NOT_EQUAL => NumberRelationalOperator.NOT_EQUAL,
-                Operators.LESS => NumberRelationalOperator.LESS,
-                Operators.LESS_OR_EQUAL => NumberRelationalOperator.LESS_OR_EQUAL,
+                Comparisons.GREATER_OR_EQUAL => NumberRelationalOperator.GREATER_OR_EQUAL,
+                Comparisons.GREATER => NumberRelationalOperator.GREATER,
+                Comparisons.EQUAL => NumberRelationalOperator.EQUAL,
+                Comparisons.NOT_EQUAL => NumberRelationalOperator.NOT_EQUAL,
+                Comparisons.LESS => NumberRelationalOperator.LESS,
+                Comparisons.LESS_OR_EQUAL => NumberRelationalOperator.LESS_OR_EQUAL,
                 _ => throw new NotImplementedException(),
             };
         }

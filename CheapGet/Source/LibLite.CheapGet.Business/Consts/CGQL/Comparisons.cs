@@ -1,6 +1,6 @@
 ﻿namespace LibLite.CheapGet.Business.Consts.CGQL
 {
-    internal static class Operators
+    internal static class Comparisons
     {
         public const string GREATER_OR_EQUAL = ">=";
         public const string GREATER = ">";

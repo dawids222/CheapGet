@@ -52,7 +52,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         }
 
         private static bool IsSortDirectionToken(string token) => SortDirections.ALL.Contains(token);
-        private static bool IsComparisonToken(string token) => Operators.ALL.Contains(token);
+        private static bool IsComparisonToken(string token) => Comparisons.ALL.Contains(token);
         private static bool IsDecimalToken(string token) => (token.Contains('.') || token.Contains(',')) && double.TryParse(token.Replace('.', ','), out var _);
         private static bool IsIntegerToken(string token) => int.TryParse(token, out var _);
         private static bool IsTextToken(string token) => ContainsTwoUnescapedQuotationMarks(token) && token.StartsWith('"') && token.EndsWith('"');

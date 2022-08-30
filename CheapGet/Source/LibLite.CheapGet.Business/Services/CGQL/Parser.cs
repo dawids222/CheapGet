@@ -7,19 +7,20 @@ using LibLite.CheapGet.Core.CGQL.Services;
 
 namespace LibLite.CheapGet.Business.Services.CGQL
 {
-    // TODO: Add MORE erorr handling!
+    // TODO: Consolidate error messages
     public class Parser : IParser
     {
         // TODO: Move?
         public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.CLS, TokenType.EXIT };
         public static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.FLOATING };
+        public static readonly TokenType[] NUMERIC_TOKEN_TYPES = new[] { TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] SELECT_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.EOF };
 
-        private List<Token> _tokens;
+        private IList<Token> _tokens;
 
         public Expression Parse(IEnumerable<Token> tokens)
         {
-            _tokens = new List<Token>(tokens);
+            _tokens = tokens.ToList();
             var token = Eat(ROOT_TOKEN_TYPES);
             return Parse(token);
         }
@@ -42,18 +43,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             };
         }
 
-        private Token Eat(TokenType type)
-        {
-            var token = _tokens.First();
-            if (token.Type != type)
-            {
-                throw new UnexpectedTokenException(token, type);
-            }
-            _tokens.RemoveAt(0);
-            return token;
-        }
-
-        private Token Eat(IEnumerable<TokenType> types)
+        private Token Eat(params TokenType[] types)
         {
             var token = _tokens.First();
             if (!types.Contains(token.Type))
@@ -88,45 +78,60 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             return new From(new Text(text.Value));
         }
 
-        private Filter ParseFilter(Token _) // TODO: Validate property, comaprison and value
+        private Filter ParseFilter(Token _)
         {
-            var property = Eat(TokenType.TEXT);
-            if (!Properties.ALL.Contains(property.Value))
-            {
-                // TODO: Error!
-            }
-            var comparison = Eat(TokenType.COMPARISON);
-            if (Properties.STRING_PROPERTIES.Contains(property.Value) && !Operators.STRING_OPERATORS.Contains(comparison.Value))
-            {
-                // TODO: Error!
-            }
-            if (Properties.DECIMAL_PROPERTIES.Contains(property.Value) && !Operators.DECIMAL_PROPERTIES.Contains(comparison.Value))
-            {
-                // TODO: Error!
-            }
-            var literal = Eat(LITERAL_TOKEN_TYPES);
-            var value = ParseLiteral(literal);
-            if (Properties.STRING_PROPERTIES.Contains(property.Value) && value.Type != TokenType.TEXT)
-            {
-                // TODO: Error!
-            }
-            if (Properties.DECIMAL_PROPERTIES.Contains(property.Value) && value.Type != TokenType.INTEGER && value.Type != TokenType.FLOATING)
-            {
-                // TODO: Error!
-            }
+            var property = EatProperty();
+            var comparison = EatComparison(property);
+            var literal = EatLiteral(property);
             return new Filter(
                 new Text(property.Value),
                 new Comparison(comparison.Value),
-                value);
+                ParseLiteral(literal));
         }
 
-        private Sort ParseSort(Token _) // TODO: Validate property
+        private Sort ParseSort(Token _)
         {
-            var property = Eat(TokenType.TEXT);
+            var property = EatProperty();
             var direction = Eat(TokenType.SORT_DIRECTION);
             return new Sort(
                 new Text(property.Value),
                 new SortDirection(direction.Value));
+        }
+
+        private Token EatProperty()
+        {
+            var property = Eat(TokenType.TEXT);
+            if (!Properties.ALL.Contains(property.Value))
+            {
+                var properties = $"[{string.Join(", ", Properties.ALL)}]";
+                throw new Exception($"Expected {TokenType.TEXT} of value {properties} but got '{property.Value}' at position {property.Position}");
+            }
+            return property;
+        }
+
+        private Token EatComparison(Token property)
+        {
+            var comparison = Eat(TokenType.COMPARISON);
+            if (Properties.STRING_PROPERTIES.Contains(property.Value) &&
+                !Comparisons.STRING_OPERATORS.Contains(comparison.Value))
+            {
+                var comparisons = $"[{string.Join(", ", Comparisons.STRING_OPERATORS)}]";
+                throw new Exception($"Expected value {comparisons} but got '{comparison.Value}' at position {comparison.Position}");
+            }
+            if (Properties.NUMERIC_PROPERTIES.Contains(property.Value) &&
+                !Comparisons.DECIMAL_PROPERTIES.Contains(comparison.Value))
+            {
+                var comparisons = $"[{string.Join(", ", Comparisons.DECIMAL_PROPERTIES)}]";
+                throw new Exception($"Expected value {comparisons} but got '{comparison.Value}' at position {comparison.Position}");
+            }
+            return comparison;
+        }
+
+        private Token EatLiteral(Token property)
+        {
+            return Properties.NUMERIC_PROPERTIES.Contains(property.Value)
+                ? Eat(NUMERIC_TOKEN_TYPES)
+                : Eat(TokenType.TEXT);
         }
 
         private Take ParseTake(Token _)
