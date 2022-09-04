@@ -1,7 +1,7 @@
 ﻿using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Models;
 
-namespace LibLite.CheapGet.Business.Exceptions.DSL
+namespace LibLite.CheapGet.Business.Exceptions.CGQL
 {
     public class UnexpectedTokenException : Exception
     {

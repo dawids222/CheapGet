@@ -1,5 +1,5 @@
 ﻿using LibLite.CheapGet.Business.Consts.CGQL;
-using LibLite.CheapGet.Business.Exceptions.DSL;
+using LibLite.CheapGet.Business.Exceptions.CGQL;
 using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Expressions;
 using LibLite.CheapGet.Core.CGQL.Models;

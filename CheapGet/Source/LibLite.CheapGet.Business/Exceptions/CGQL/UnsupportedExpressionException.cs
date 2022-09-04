@@ -1,6 +1,6 @@
 ﻿using LibLite.CheapGet.Core.CGQL.Expressions;
 
-namespace LibLite.CheapGet.Business.Exceptions.DSL
+namespace LibLite.CheapGet.Business.Exceptions.CGQL
 {
     public class UnsupportedExpressionException : Exception
     {

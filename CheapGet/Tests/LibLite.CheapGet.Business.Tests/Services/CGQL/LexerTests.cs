@@ -1,4 +1,5 @@
-﻿using LibLite.CheapGet.Business.Services.CGQL;
+﻿using LibLite.CheapGet.Business.Exceptions.CGQL;
+using LibLite.CheapGet.Business.Services.CGQL;
 using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Models;
 using NUnit.Framework;
@@ -6,7 +7,6 @@ using System.Collections.Generic;
 
 namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 {
-    // TODO: Add unexpected token test
     [TestFixture]
     public class LexerTests
     {
@@ -18,17 +18,17 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             _lexer = new Lexer();
         }
 
-        [TestCaseSource(nameof(_lexTestCases))]
-        public void Lex_LexesInput_ReturnsExpectedTokenCollection(LexTestCase test)
+        [TestCaseSource(nameof(_lexValidTestCases))]
+        public void Lex_LexesValidInput_ReturnsExpectedTokenCollection(LexValidTestCase test)
         {
             var result = _lexer.Lex(test.Input);
 
             CollectionAssert.AreEqual(test.Expected, result);
         }
 
-        private static readonly IEnumerable<LexTestCase> _lexTestCases = new List<LexTestCase>
+        private static readonly IEnumerable<LexValidTestCase> _lexValidTestCases = new List<LexValidTestCase>
         {
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = "select",
                 Expected = new List<Token>
@@ -37,7 +37,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 6),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = @"select from ""Games"" filter ""base_price"" >= 49,99 sort ""name"" desc take 50",
                 Expected = new List<Token>
@@ -57,7 +57,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 73),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = "cls",
                 Expected = new List<Token>
@@ -66,7 +66,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 3),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = "exit",
                 Expected = new List<Token>
@@ -75,7 +75,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 4),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = @"select from filter >= > = != <> < <= sort asc desc take ""text"" 1 1.1 2,2 cls exit",
                 Expected = new List<Token>
@@ -103,7 +103,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 81),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = @"sELEct FROM FilteR >= > = != <> < <= sOrT aSc DeSc TAke ""tExT"" 1 1.1 2,2 cLS ExIt",
                 Expected = new List<Token>
@@ -131,7 +131,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 81),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = @"""text with   whitespaces""",
                 Expected = new List<Token>
@@ -140,7 +140,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 25),
                 },
             },
-            new LexTestCase
+            new LexValidTestCase
             {
                 Input = @"select sort  ""name""    asc",
                 Expected = new List<Token>
@@ -154,10 +154,45 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             },
         };
 
-        public class LexTestCase
+        public class LexValidTestCase
         {
             public string Input { get; init; }
             public IEnumerable<Token> Expected { get; init; }
+        }
+
+        [TestCaseSource(nameof(_lexInvalidTestCases))]
+        public void Lex_LexesInvalidInput_ThrowsInvalidTokenException(LexInvalidTestCase test)
+        {
+            void act() => _lexer.Lex(test.Input);
+
+            var exception = Assert.Throws<InvalidTokenException>(act, test.Exception.Message);
+            Assert.AreEqual(test.Exception.Token, exception.Token);
+            Assert.AreEqual(test.Exception.Position, exception.Position);
+        }
+
+        private static readonly IEnumerable<LexInvalidTestCase> _lexInvalidTestCases = new List<LexInvalidTestCase>
+        {
+            new LexInvalidTestCase
+            {
+                Input = "invalid",
+                Exception= new("invalid", 0),
+            },
+            new LexInvalidTestCase
+            {
+                Input = "'text'",
+                Exception= new("'text'", 0),
+            },
+            new LexInvalidTestCase
+            {
+                Input = @"""""text""",
+                Exception= new(@"""""text""", 0),
+            },
+        };
+
+        public class LexInvalidTestCase
+        {
+            public string Input { get; init; }
+            public InvalidTokenException Exception { get; init; }
         }
     }
 }

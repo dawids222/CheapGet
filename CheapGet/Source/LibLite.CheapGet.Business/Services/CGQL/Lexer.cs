@@ -1,4 +1,5 @@
 ﻿using LibLite.CheapGet.Business.Consts.CGQL;
+using LibLite.CheapGet.Business.Exceptions.CGQL;
 using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Models;
 using LibLite.CheapGet.Core.CGQL.Services;
@@ -12,15 +13,17 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         public IEnumerable<Token> Lex(string input)
         {
             var position = 0;
+            var result = new List<Token>();
             var tokens = SplitIntoTokens(input);
             foreach (var token in tokens)
             {
                 var type = GetTokenType(token, position);
                 var value = GetTokenValue(token, type);
-                yield return new Token(type, value, position);
+                result.Add(new Token(type, value, position));
                 position += GetPositionsToNextToken(token, input, position);
             }
-            yield return Token.EOF(input.Length);
+            result.Add(Token.EOF(input.Length));
+            return result;
         }
 
         private static IEnumerable<string> SplitIntoTokens(string input)
@@ -34,21 +37,20 @@ namespace LibLite.CheapGet.Business.Services.CGQL
 
         private static TokenType GetTokenType(string token, int position)
         {
-            // TODO: Move literals to consts
             var lowerToken = token.ToLower();
-            if (lowerToken == "select") return TokenType.SELECT;
-            if (lowerToken == "from") return TokenType.FROM;
-            if (lowerToken == "filter") return TokenType.FILTER;
-            if (lowerToken == "sort") return TokenType.SORT;
-            if (lowerToken == "take") return TokenType.TAKE;
-            if (lowerToken == "cls") return TokenType.CLS;
-            if (lowerToken == "exit") return TokenType.EXIT;
+            if (lowerToken == Keywords.SELECT) return TokenType.SELECT;
+            if (lowerToken == Keywords.FROM) return TokenType.FROM;
+            if (lowerToken == Keywords.FILTER) return TokenType.FILTER;
+            if (lowerToken == Keywords.SORT) return TokenType.SORT;
+            if (lowerToken == Keywords.TAKE) return TokenType.TAKE;
+            if (lowerToken == Keywords.CLS) return TokenType.CLS;
+            if (lowerToken == Keywords.EXIT) return TokenType.EXIT;
             if (IsSortDirectionToken(lowerToken)) return TokenType.SORT_DIRECTION;
             if (IsComparisonToken(lowerToken)) return TokenType.COMPARISON;
             if (IsDecimalToken(lowerToken)) return TokenType.FLOATING;
             if (IsIntegerToken(lowerToken)) return TokenType.INTEGER;
             if (IsTextToken(token)) return TokenType.TEXT;
-            throw new NotImplementedException($"'{token}' at position {position} is not recognised as a valid token."); // TODO: Add dedicated exception specifying value and position
+            throw new InvalidTokenException(token, position);
         }
 
         private static bool IsSortDirectionToken(string token) => SortDirections.ALL.Contains(token);

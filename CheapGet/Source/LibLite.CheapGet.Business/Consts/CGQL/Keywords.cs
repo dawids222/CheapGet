@@ -1,0 +1,13 @@
+﻿namespace LibLite.CheapGet.Business.Consts.CGQL
+{
+    public static class Keywords
+    {
+        public const string SELECT = "select";
+        public const string FROM = "from";
+        public const string FILTER = "filter";
+        public const string SORT = "sort";
+        public const string TAKE = "take";
+        public const string CLS = "cls";
+        public const string EXIT = "exit";
+    }
+}
