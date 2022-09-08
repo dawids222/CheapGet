@@ -50,10 +50,10 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             if (IsDecimalToken(lowerToken)) return TokenType.FLOATING;
             if (IsIntegerToken(lowerToken)) return TokenType.INTEGER;
             if (IsTextToken(token)) return TokenType.TEXT;
-            throw new InvalidTokenException(token, position);
+            throw new UnrecognisedTokenException(token, position);
         }
 
-        private static bool IsSortDirectionToken(string token) => SortDirections.ALL.Contains(token);
+        private static bool IsSortDirectionToken(string token) => Keywords.SORT_DIRECTIONS.Contains(token);
         private static bool IsComparisonToken(string token) => Comparisons.ALL.Contains(token);
         private static bool IsDecimalToken(string token) => (token.Contains('.') || token.Contains(',')) && double.TryParse(token.Replace('.', ','), out var _);
         private static bool IsIntegerToken(string token) => int.TryParse(token, out var _);

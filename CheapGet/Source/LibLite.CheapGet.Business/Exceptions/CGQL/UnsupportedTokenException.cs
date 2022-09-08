@@ -7,7 +7,7 @@ namespace LibLite.CheapGet.Business.Exceptions.CGQL
         public Token Token { get; }
 
         public UnsupportedTokenException(Token token)
-            : base($"{token.Value} of type '{token.Type}' at position {token.Position} currently is not supported")
+            : base($"{token.Value} of type '{token.Type}' currently is not supported at position {token.Position}")
         {
             Token = token;
         }

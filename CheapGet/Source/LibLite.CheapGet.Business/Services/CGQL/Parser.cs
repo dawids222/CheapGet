@@ -10,7 +10,6 @@ namespace LibLite.CheapGet.Business.Services.CGQL
     // TODO: Consolidate error messages
     public class Parser : IParser
     {
-        // TODO: Move?
         public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.CLS, TokenType.EXIT };
         public static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] NUMERIC_TOKEN_TYPES = new[] { TokenType.INTEGER, TokenType.FLOATING };
@@ -63,7 +62,6 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 if (token.Type == TokenType.EOF) { break; }
 
                 var expression = Parse(token);
-
                 if (token.Type == TokenType.FROM) { result.From = expression as From; }
                 if (token.Type == TokenType.TAKE) { result.Take = expression as Take; }
                 if (token.Type == TokenType.FILTER) { result.Filters.Add(expression as Filter); }
@@ -74,8 +72,18 @@ namespace LibLite.CheapGet.Business.Services.CGQL
 
         private From ParseFrom(Token _)
         {
-            var text = Eat(TokenType.TEXT);
+            var text = EatCategory();
             return new From(new Text(text.Value));
+        }
+
+        private Token EatCategory()
+        {
+            var category = Eat(TokenType.TEXT);
+            if (!Categories.IsCategory(category.Value))
+            {
+                throw new UnexpectedValueException(category, Categories.ALL);
+            }
+            return category;
         }
 
         private Filter ParseFilter(Token _)
@@ -101,10 +109,9 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         private Token EatProperty()
         {
             var property = Eat(TokenType.TEXT);
-            if (!Properties.ALL.Contains(property.Value))
+            if (!Properties.IsProperty(property.Value))
             {
-                var properties = $"[{string.Join(", ", Properties.ALL)}]";
-                throw new Exception($"Expected {TokenType.TEXT} of value {properties} but got '{property.Value}' at position {property.Position}");
+                throw new UnexpectedValueException(property, Properties.ALL);
             }
             return property;
         }
@@ -112,32 +119,24 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         private Token EatComparison(Token property)
         {
             var comparison = Eat(TokenType.COMPARISON);
-            if (Properties.STRING_PROPERTIES.Contains(property.Value) &&
-                !Comparisons.STRING_OPERATORS.Contains(comparison.Value))
+            if (Properties.IsTextProperty(property.Value) &&
+                !Comparisons.IsTextComparison(comparison.Value))
             {
-                var comparisons = $"[{string.Join(", ", Comparisons.STRING_OPERATORS)}]";
-                throw new Exception($"Expected value {comparisons} but got '{comparison.Value}' at position {comparison.Position}");
+                throw new UnexpectedValueException(comparison, Comparisons.TEXT_COMPARISONS);
             }
-            if (Properties.NUMERIC_PROPERTIES.Contains(property.Value) &&
-                !Comparisons.DECIMAL_PROPERTIES.Contains(comparison.Value))
+            if (Properties.IsNumericProperty(property.Value) &&
+                !Comparisons.IsNumericComparison(comparison.Value))
             {
-                var comparisons = $"[{string.Join(", ", Comparisons.DECIMAL_PROPERTIES)}]";
-                throw new Exception($"Expected value {comparisons} but got '{comparison.Value}' at position {comparison.Position}");
+                throw new UnexpectedValueException(comparison, Comparisons.NUMERIC_COMPARISONS);
             }
             return comparison;
         }
 
         private Token EatLiteral(Token property)
         {
-            return Properties.NUMERIC_PROPERTIES.Contains(property.Value)
+            return Properties.IsNumericProperty(property.Value)
                 ? Eat(NUMERIC_TOKEN_TYPES)
                 : Eat(TokenType.TEXT);
-        }
-
-        private Take ParseTake(Token _)
-        {
-            var value = Eat(TokenType.INTEGER);
-            return new Take(new Integer(int.Parse(value.Value)));
         }
 
         private Literal ParseLiteral(Token token)
@@ -147,6 +146,13 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 throw new UnexpectedTokenException(token, LITERAL_TOKEN_TYPES);
             }
             return Parse(token) as Literal;
+        }
+
+        private Take ParseTake(Token _)
+        {
+            var token = Eat(TokenType.INTEGER);
+            var value = int.Parse(token.Value);
+            return new Take(new Integer(value));
         }
 
         private static Text ParseText(Token text)

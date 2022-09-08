@@ -1,4 +1,5 @@
-﻿using LibLite.CheapGet.Business.Exceptions.CGQL;
+﻿using LibLite.CheapGet.Business.Consts.CGQL;
+using LibLite.CheapGet.Business.Exceptions.CGQL;
 using LibLite.CheapGet.Business.Services.CGQL;
 using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Expressions;
@@ -21,158 +22,161 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             _parser = new();
         }
 
-        [TestCaseSource(nameof(_parseSuccessTestCases))]
-        public void Parse_Success_ReturnsExpectedExpression(ParseSucessTestCase test)
+        [TestCaseSource(nameof(_parseValidTestCases))]
+        public void Parse_ParsesValidInput_ReturnsExpectedExpression(ParseValidTestCase test)
         {
             var result = _parser.Parse(test.Tokens);
 
             Assert.AreEqual(test.Expected, result);
         }
 
-        private static readonly IEnumerable<ParseSucessTestCase> _parseSuccessTestCases = new List<ParseSucessTestCase>
+        private static readonly IEnumerable<ParseValidTestCase> _parseValidTestCases = new List<ParseValidTestCase>
         {
-            new ParseSucessTestCase
+            new ParseValidTestCase
             {
                 Tokens = new List<Token>
                 {
-                    new Token(TokenType.SELECT, "select", 0),
-                    new Token(TokenType.EOF, "", 6),
+                    new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                    new Token(TokenType.EOF, string.Empty, 6),
                 },
                 Expected = new Select(),
             },
-            new ParseSucessTestCase
+            new ParseValidTestCase
             {
                 Tokens = new List<Token>
                 {
-                    new Token(TokenType.CLS, "cls", 0),
-                    new Token(TokenType.EOF, "", 3),
+                    new Token(TokenType.CLS, Keywords.CLS, 0),
+                    new Token(TokenType.EOF, string.Empty, 3),
                 },
                 Expected = new Cls(),
             },
-            new ParseSucessTestCase
+            new ParseValidTestCase
             {
                 Tokens = new List<Token>
                 {
-                    new Token(TokenType.EXIT, "exit", 0),
-                    new Token(TokenType.EOF, "", 4),
+                    new Token(TokenType.EXIT, Keywords.EXIT, 0),
+                    new Token(TokenType.EOF, string.Empty, 4),
                 },
                 Expected = new Exit(),
             },
-            new ParseSucessTestCase
+            new ParseValidTestCase
             {
                 Tokens = new List<Token>
                 {
-                    new Token(TokenType.SELECT, "select", 0),
-                    new Token(TokenType.FROM, "from", 7),
-                    new Token(TokenType.TEXT, "Text", 12),
-                    new Token(TokenType.FILTER, "filter", 17),
-                    new Token(TokenType.TEXT, "base_price", 24),
-                    new Token(TokenType.COMPARISON, ">=", 35),
+                    new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                    new Token(TokenType.FROM, Keywords.FROM, 7),
+                    new Token(TokenType.TEXT, Categories.GAMES, 12),
+                    new Token(TokenType.FILTER, Keywords.FILTER, 17),
+                    new Token(TokenType.TEXT, Properties.BASE_PRICE, 24),
+                    new Token(TokenType.COMPARISON, Comparisons.GREATER_OR_EQUAL, 35),
                     new Token(TokenType.FLOATING, "49,99", 38),
-                    new Token(TokenType.FILTER, "filter", 44),
-                    new Token(TokenType.TEXT, "discounted_price", 51),
-                    new Token(TokenType.COMPARISON, "<=", 68),
+                    new Token(TokenType.FILTER, Keywords.FILTER, 44),
+                    new Token(TokenType.TEXT, Properties.DISCOUNTED_PRICE, 51),
+                    new Token(TokenType.COMPARISON, Comparisons.LESS_OR_EQUAL, 68),
                     new Token(TokenType.INTEGER, "100", 71),
-                    new Token(TokenType.SORT, "sort", 75),
-                    new Token(TokenType.TEXT, "name", 80),
-                    new Token(TokenType.SORT_DIRECTION, "desc", 85),
-                    new Token(TokenType.SORT, "sort", 90),
-                    new Token(TokenType.TEXT, "store_name", 95),
-                    new Token(TokenType.SORT_DIRECTION, "asc", 105),
-                    new Token(TokenType.TAKE, "take", 109),
+                    new Token(TokenType.SORT, Keywords.SORT, 75),
+                    new Token(TokenType.TEXT, Properties.NAME, 80),
+                    new Token(TokenType.SORT_DIRECTION, Keywords.DESC, 85),
+                    new Token(TokenType.SORT, Keywords.SORT, 90),
+                    new Token(TokenType.TEXT, Properties.STORE_NAME, 95),
+                    new Token(TokenType.SORT_DIRECTION, Keywords.ASC, 105),
+                    new Token(TokenType.TAKE, Keywords.TAKE, 109),
                     new Token(TokenType.INTEGER, "50", 114),
-                    new Token(TokenType.EOF, "", 115),
+                    new Token(TokenType.EOF, string.Empty, 115),
                 },
                 Expected = new Select()
                 {
-                    From = new From(new Text("Text")),
+                    From = new From(new Text(Categories.GAMES)),
                     Take = new Take(new Integer(50)),
                     Filters = new List<Filter>
                     {
-                        new Filter(new Text("base_price"), new Comparison(">="), new Floating(49.99)),
-                        new Filter(new Text("discounted_price"), new Comparison("<="), new Integer(100)),
+                        new Filter(new Text(Properties.BASE_PRICE), new Comparison(Comparisons.GREATER_OR_EQUAL), new Floating(49.99)),
+                        new Filter(new Text(Properties.DISCOUNTED_PRICE), new Comparison(Comparisons.LESS_OR_EQUAL), new Integer(100)),
                     },
                     Sorts = new List<Sort>
                     {
-                        new Sort(new Text("name"), new SortDirection("desc")),
-                        new Sort(new Text("store_name"), new SortDirection("asc")),
+                        new Sort(new Text(Properties.NAME), new SortDirection(Keywords.DESC)),
+                        new Sort(new Text(Properties.STORE_NAME), new SortDirection(Keywords.ASC)),
                     },
                 },
             },
-            new ParseSucessTestCase
+            new ParseValidTestCase
             {
                 Tokens = new List<Token>
                 {
-                    new Token(TokenType.SELECT, "select", 0),
-                    new Token(TokenType.SORT, "sort", 7),
-                    new Token(TokenType.TEXT, "name", 12),
-                    new Token(TokenType.SORT_DIRECTION, "desc", 17),
-                    new Token(TokenType.TAKE, "take", 22),
+                    new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                    new Token(TokenType.SORT, Keywords.SORT, 7),
+                    new Token(TokenType.TEXT, Properties.NAME, 12),
+                    new Token(TokenType.SORT_DIRECTION, Keywords.DESC, 17),
+                    new Token(TokenType.TAKE, Keywords.TAKE, 22),
                     new Token(TokenType.INTEGER, "50", 27),
-                    new Token(TokenType.FILTER, "filter", 30),
-                    new Token(TokenType.TEXT, "base_price", 37),
-                    new Token(TokenType.COMPARISON, ">=", 48),
+                    new Token(TokenType.FILTER, Keywords.FILTER, 30),
+                    new Token(TokenType.TEXT, Properties.BASE_PRICE, 37),
+                    new Token(TokenType.COMPARISON, Comparisons.GREATER_OR_EQUAL, 48),
                     new Token(TokenType.FLOATING, "49,99", 51),
-                    new Token(TokenType.FROM, "from", 57),
-                    new Token(TokenType.TEXT, "Text", 62),
-                    new Token(TokenType.SORT, "sort", 67),
-                    new Token(TokenType.TEXT, "store_name", 72),
-                    new Token(TokenType.SORT_DIRECTION, "asc", 83),
-                    new Token(TokenType.FILTER, "filter", 87),
-                    new Token(TokenType.TEXT, "discounted_price", 94),
-                    new Token(TokenType.COMPARISON, "<=", 111),
+                    new Token(TokenType.FROM, Keywords.FROM, 57),
+                    new Token(TokenType.TEXT, Categories.GAMES, 62),
+                    new Token(TokenType.SORT, Keywords.SORT, 67),
+                    new Token(TokenType.TEXT, Properties.STORE_NAME, 72),
+                    new Token(TokenType.SORT_DIRECTION, Keywords.ASC, 83),
+                    new Token(TokenType.FILTER, Keywords.FILTER, 87),
+                    new Token(TokenType.TEXT, Properties.DISCOUNTED_PRICE, 94),
+                    new Token(TokenType.COMPARISON, Comparisons.LESS_OR_EQUAL, 111),
                     new Token(TokenType.INTEGER, "100", 114),
-                    new Token(TokenType.EOF, "", 115),
+                    new Token(TokenType.EOF, string.Empty, 115),
                 },
                 Expected = new Select()
                 {
-                    From = new From(new Text("Text")),
+                    From = new From(new Text(Categories.GAMES)),
                     Take = new Take(new Integer(50)),
                     Filters = new List<Filter>
                     {
-                        new Filter(new Text("base_price"), new Comparison(">="), new Floating(49.99)),
-                        new Filter(new Text("discounted_price"), new Comparison("<="), new Integer(100)),
+                        new Filter(new Text(Properties.BASE_PRICE), new Comparison(Comparisons.GREATER_OR_EQUAL), new Floating(49.99)),
+                        new Filter(new Text(Properties.DISCOUNTED_PRICE), new Comparison(Comparisons.LESS_OR_EQUAL), new Integer(100)),
                     },
                     Sorts = new List<Sort>
                     {
-                        new Sort(new Text("name"), new SortDirection("desc")),
-                        new Sort(new Text("store_name"), new SortDirection("asc")),
+                        new Sort(new Text(Properties.NAME), new SortDirection(Keywords.DESC)),
+                        new Sort(new Text(Properties.STORE_NAME), new SortDirection(Keywords.ASC)),
                     },
                 },
             },
         };
 
-        public class ParseSucessTestCase
+        public class ParseValidTestCase
         {
             public IEnumerable<Token> Tokens { get; init; }
             public Expression Expected { get; init; }
         }
 
-        [TestCaseSource(nameof(_parseFailureTestCases))]
-        public void Parse_Failure_ThrowsException<TException>(ParseFailureTestCase<TException> test)
+        [TestCaseSource(nameof(_parseInvalidTestCases))]
+        public void Parse_ParsesInvalidInput_ThrowsException<TException>(ParseInvalidTestCase<TException> test)
             where TException : Exception
         {
             void act() => _parser.Parse(test.Tokens);
 
-            Assert.Throws<TException>(act, test.Exception.Message);
+            var exception = Assert.Throws<TException>(act);
+            Assert.AreEqual(test.Exception.Message, exception.Message);
         }
 
-        private static readonly IEnumerable<object> _parseFailureTestCases =
+        private static readonly IEnumerable<object> _parseInvalidTestCases =
             new IEnumerable<object>[]
             {
                 GetExpectedRootTokenFailureTestCases(),
                 GetSelectExpectedTokenFailureTestCases(),
+                GetValueFailureManualTestCases(),
+                GetValueFailureGeneratedTestCases(),
                 new List<object>
                 {
-                    new ParseFailureTestCase<ArgumentNullException>
+                    new ParseInvalidTestCase<ArgumentNullException>
                     {
                         Tokens = null,
-                        Exception = new ArgumentNullException(),
+                        Exception = new ArgumentNullException("source"),
                     },
                 },
             }.SelectMany(x => x);
 
-        private static IEnumerable<ParseFailureTestCase<UnexpectedTokenException>> GetExpectedRootTokenFailureTestCases()
+        private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetExpectedRootTokenFailureTestCases()
         {
             return Enum
                 .GetValues(typeof(TokenType))
@@ -181,7 +185,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 .Select(type =>
                 {
                     var token = new Token(type, type.ToString(), 0);
-                    return new ParseFailureTestCase<UnexpectedTokenException>
+                    return new ParseInvalidTestCase<UnexpectedTokenException>
                     {
                         Tokens = new Token[] { token },
                         Exception = new UnexpectedTokenException(token, Parser.ROOT_TOKEN_TYPES),
@@ -190,7 +194,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             .ToList();
         }
 
-        private static IEnumerable<ParseFailureTestCase<UnexpectedTokenException>> GetSelectExpectedTokenFailureTestCases()
+        private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetSelectExpectedTokenFailureTestCases()
         {
             return Enum
                 .GetValues(typeof(TokenType))
@@ -198,9 +202,9 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 .Except(Parser.SELECT_EXPECTED_TOKEN_TYPES)
                 .Select(type =>
                 {
-                    var select = new Token(TokenType.SELECT, "select", 0);
+                    var select = new Token(TokenType.SELECT, Keywords.SELECT, 0);
                     var token = new Token(type, type.ToString(), 7);
-                    return new ParseFailureTestCase<UnexpectedTokenException>
+                    return new ParseInvalidTestCase<UnexpectedTokenException>
                     {
                         Tokens = new Token[] { select, token },
                         Exception = new UnexpectedTokenException(token, Parser.SELECT_EXPECTED_TOKEN_TYPES),
@@ -209,7 +213,80 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             .ToList();
         }
 
-        public class ParseFailureTestCase<TException>
+        private static IEnumerable<ParseInvalidTestCase<UnexpectedValueException>> GetValueFailureManualTestCases()
+        {
+            return new ParseInvalidTestCase<UnexpectedValueException>[]
+            {
+                new ParseInvalidTestCase<UnexpectedValueException>
+                {
+                    Tokens = new Token[]
+                    {
+                        new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                        new Token(TokenType.FROM, Keywords.FROM, 7),
+                        new Token(TokenType.TEXT, "invalid", 12),
+                    },
+                    Exception = new UnexpectedValueException(
+                        new Token(TokenType.TEXT, "invalid", 12),
+                        Categories.ALL),
+                },
+                new ParseInvalidTestCase<UnexpectedValueException>
+                {
+                    Tokens = new Token[]
+                    {
+                        new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                        new Token(TokenType.FILTER, Keywords.FILTER, 7),
+                        new Token(TokenType.TEXT, "invalid", 14),
+                    },
+                    Exception = new UnexpectedValueException(
+                        new Token(TokenType.TEXT, "invalid", 14),
+                        Properties.ALL),
+                },
+                new ParseInvalidTestCase<UnexpectedValueException>
+                {
+                    Tokens = new Token[]
+                    {
+                        new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                        new Token(TokenType.SORT, Keywords.SORT, 7),
+                        new Token(TokenType.TEXT, "invalid", 12),
+                    },
+                    Exception = new UnexpectedValueException(
+                        new Token(TokenType.TEXT, "invalid", 12),
+                        Properties.ALL),
+                },
+            };
+        }
+
+        private static IEnumerable<ParseInvalidTestCase<UnexpectedValueException>> GetValueFailureGeneratedTestCases()
+        {
+            var tests = new List<ParseInvalidTestCase<UnexpectedValueException>>();
+            var cases = new (IEnumerable<string> Properties, IEnumerable<string> Comparisons)[]
+            {
+                (Properties.TEXT_PROPERTIES, Comparisons.TEXT_COMPARISONS),
+                (Properties.NUMERIC_PROPERTIES, Comparisons.NUMERIC_COMPARISONS),
+            };
+            foreach (var @case in cases)
+                foreach (var property in @case.Properties)
+                    foreach (var comparison in Comparisons.ALL.Except(@case.Comparisons))
+                    {
+                        var test = new ParseInvalidTestCase<UnexpectedValueException>
+                        {
+                            Tokens = new Token[]
+                            {
+                            new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                            new Token(TokenType.FILTER, Keywords.FILTER, 7),
+                            new Token(TokenType.TEXT, property, 14),
+                            new Token(TokenType.COMPARISON, comparison, 15 + property.Length),
+                            },
+                            Exception = new UnexpectedValueException(
+                                new Token(TokenType.COMPARISON, comparison, 15 + property.Length),
+                                @case.Comparisons),
+                        };
+                        tests.Add(test);
+                    }
+            return tests;
+        }
+
+        public class ParseInvalidTestCase<TException>
             where TException : Exception
         {
             public IEnumerable<Token> Tokens { get; init; }

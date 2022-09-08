@@ -1,6 +1,6 @@
 ﻿namespace LibLite.CheapGet.Business.Consts.CGQL
 {
-    internal static class Properties
+    public static class Properties
     {
         public const string STORE_NAME = "store_name";
         public const string NAME = "name";
@@ -19,7 +19,7 @@
             DISCOUNT_VALUE,
         };
 
-        public static readonly IEnumerable<string> STRING_PROPERTIES = new[]
+        public static readonly IEnumerable<string> TEXT_PROPERTIES = new[]
         {
             STORE_NAME,
             NAME,
@@ -32,5 +32,9 @@
             DISCOUNT_PERCENTAGE,
             DISCOUNT_VALUE,
         };
+
+        public static bool IsProperty(string value) => ALL.Contains(value);
+        public static bool IsTextProperty(string value) => TEXT_PROPERTIES.Contains(value);
+        public static bool IsNumericProperty(string value) => NUMERIC_PROPERTIES.Contains(value);
     }
 }

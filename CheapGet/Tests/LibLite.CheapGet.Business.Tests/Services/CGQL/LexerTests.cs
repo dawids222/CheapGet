@@ -165,7 +165,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
         {
             void act() => _lexer.Lex(test.Input);
 
-            var exception = Assert.Throws<InvalidTokenException>(act, test.Exception.Message);
+            var exception = Assert.Throws<UnrecognisedTokenException>(act, test.Exception.Message);
             Assert.AreEqual(test.Exception.Token, exception.Token);
             Assert.AreEqual(test.Exception.Position, exception.Position);
         }
@@ -192,7 +192,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
         public class LexInvalidTestCase
         {
             public string Input { get; init; }
-            public InvalidTokenException Exception { get; init; }
+            public UnrecognisedTokenException Exception { get; init; }
         }
     }
 }

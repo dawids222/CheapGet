@@ -158,7 +158,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         {
             var name = sort.Property.Value;
             var value = sort.Direction.Value.ToLower();
-            var asc = SortDirections.ASC.ToLower();
+            var asc = Keywords.ASC.ToLower();
             var direction = value == asc
                 ? Core.Enums.SortDirection.ASC
                 : Core.Enums.SortDirection.DESC;
