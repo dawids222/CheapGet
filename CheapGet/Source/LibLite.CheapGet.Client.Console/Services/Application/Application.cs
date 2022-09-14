@@ -31,8 +31,9 @@ namespace LibLite.CheapGet.Client.Console.Services.Application
                     var input = System.Console.ReadLine();
                     var tokens = _lexer.Lex(input);
                     var expression = _parser.Parse(tokens);
-                    var task = _interpreter.InterpretAsync(expression);
-                    await ProgressBar.DisplayUntilCompletedAsync(task);
+                    var interpreterTask = _interpreter.InterpretAsync(expression);
+                    var progressTask = ProgressBar.DisplayUntilCompletedAsync(interpreterTask);
+                    await Task.WhenAll(interpreterTask, progressTask);
                 }
                 catch (Exception ex)
                 {
