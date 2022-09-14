@@ -32,26 +32,12 @@ namespace LibLite.CheapGet.Client.Console.Services.Application
                     var tokens = _lexer.Lex(input);
                     var expression = _parser.Parse(tokens);
                     var task = _interpreter.InterpretAsync(expression);
-                    await DisplayProgressBarUntilCompletedAsync(task);
+                    await ProgressBar.DisplayUntilCompletedAsync(task);
                 }
                 catch (Exception ex)
                 {
                     System.Console.WriteLine(ex.Message);
                 }
-            }
-        }
-
-        private static async Task DisplayProgressBarUntilCompletedAsync(Task task)
-        {
-            using var progressBar = new ProgressBar();
-            var progress = 0;
-            while (!task.IsCompleted)
-            {
-                var percentage = (double)progress / 100;
-                progressBar.Report(percentage);
-                await Task.Delay(20);
-                progress++;
-                progress %= 100;
             }
         }
     }

@@ -6,6 +6,7 @@
 using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LibLite.CheapGet.Client.Console.Services.UI
 {
@@ -35,6 +36,20 @@ namespace LibLite.CheapGet.Client.Console.Services.UI
             if (!System.Console.IsOutputRedirected)
             {
                 ResetTimer();
+            }
+        }
+
+        public static async Task DisplayUntilCompletedAsync(Task task)
+        {
+            using var progressBar = new ProgressBar();
+            var progress = 0;
+            while (!task.IsCompleted)
+            {
+                var percentage = (double)progress / 100;
+                progressBar.Report(percentage);
+                await Task.Delay(20);
+                progress++;
+                progress %= 100;
             }
         }
 
