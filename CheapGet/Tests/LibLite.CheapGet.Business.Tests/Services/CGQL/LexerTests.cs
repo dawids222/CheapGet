@@ -162,6 +162,21 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     new Token(TokenType.EOF, "", 26),
                 },
             },
+            new LexValidTestCase
+            {
+                Input = @"select
+sort
+""name""
+asc",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.SELECT, "select", 0),
+                    new Token(TokenType.SORT, "sort", 7),
+                    new Token(TokenType.TEXT, "name", 12),
+                    new Token(TokenType.SORT_DIRECTION, "asc", 19),
+                    new Token(TokenType.EOF, "", 22),
+                },
+            },
         };
 
         public class LexValidTestCase

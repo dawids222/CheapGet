@@ -14,6 +14,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         {
             var position = 0;
             var result = new List<Token>();
+            input = Trim(input);
             var tokens = SplitIntoTokens(input);
             foreach (var token in tokens)
             {
@@ -26,11 +27,17 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             return result;
         }
 
+        private static string Trim(string input)
+        {
+            return input
+                .Replace(Environment.NewLine, " ")
+                .Trim();
+        }
+
         private static IEnumerable<string> SplitIntoTokens(string input)
         {
-            var trimmed = input.Trim();
             return Regex
-                .Matches(trimmed, @"[\""].+?[\""]|[^ ]+")
+                .Matches(input, @"[\""].+?[\""]|[^ ]+")
                 .Select(m => m.Value)
                 .ToList();
         }
