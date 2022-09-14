@@ -12,6 +12,7 @@
         TEXT,
         FLOATING,
         INTEGER,
+        LOAD,
         CLS,
         EXIT,
         EOF,

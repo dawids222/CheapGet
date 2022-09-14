@@ -10,7 +10,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
     // TODO: Consolidate error messages
     public class Parser : IParser
     {
-        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.CLS, TokenType.EXIT };
+        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.LOAD, TokenType.CLS, TokenType.EXIT };
         public static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] NUMERIC_TOKEN_TYPES = new[] { TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] SELECT_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.EOF };
@@ -36,6 +36,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 TokenType.TEXT => ParseText(token),
                 TokenType.INTEGER => ParseInteger(token),
                 TokenType.FLOATING => ParseFloating(token),
+                TokenType.LOAD => ParseLoad(token),
                 TokenType.CLS => ParseCls(token),
                 TokenType.EXIT => ParseExit(token),
                 _ => throw new UnsupportedTokenException(token),
@@ -170,6 +171,13 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         {
             var value = double.Parse(floating.Value);
             return new Floating(value);
+        }
+
+        private Load ParseLoad(Token _)
+        {
+            var source = Eat(TokenType.TEXT);
+            var text = new Text(source.Value);
+            return new Load(text);
         }
 
         private Cls ParseCls(Token _)

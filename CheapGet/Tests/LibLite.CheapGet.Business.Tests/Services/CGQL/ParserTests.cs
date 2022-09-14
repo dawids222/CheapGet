@@ -63,6 +63,16 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             {
                 Tokens = new List<Token>
                 {
+                    new Token(TokenType.LOAD, Keywords.LOAD, 0),
+                    new Token(TokenType.TEXT, "query.cgql", 5),
+                    new Token(TokenType.EOF, string.Empty, 17),
+                },
+                Expected = new Load(new Text("query.cgql")),
+            },
+            new ParseValidTestCase
+            {
+                Tokens = new List<Token>
+                {
                     new Token(TokenType.SELECT, Keywords.SELECT, 0),
                     new Token(TokenType.FROM, Keywords.FROM, 7),
                     new Token(TokenType.TEXT, Categories.GAMES, 12),
@@ -164,6 +174,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             {
                 GetExpectedRootTokenFailureTestCases(),
                 GetSelectExpectedTokenFailureTestCases(),
+                GetLoadExpectedTokenFailureTestCases(),
                 GetValueFailureManualTestCases(),
                 GetValueFailureGeneratedTestCases(),
                 new List<object>
@@ -208,6 +219,26 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     {
                         Tokens = new Token[] { select, token },
                         Exception = new UnexpectedTokenException(token, Parser.SELECT_EXPECTED_TOKEN_TYPES),
+                    };
+                })
+            .ToList();
+        }
+
+        private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetLoadExpectedTokenFailureTestCases()
+        {
+            var textTokenType = new TokenType[] { TokenType.TEXT };
+            return Enum
+                .GetValues(typeof(TokenType))
+                .Cast<TokenType>()
+                .Except(textTokenType)
+                .Select(type =>
+                {
+                    var load = new Token(TokenType.LOAD, Keywords.LOAD, 0);
+                    var token = new Token(type, type.ToString(), 5);
+                    return new ParseInvalidTestCase<UnexpectedTokenException>
+                    {
+                        Tokens = new Token[] { load, token },
+                        Exception = new UnexpectedTokenException(token, textTokenType),
                     };
                 })
             .ToList();

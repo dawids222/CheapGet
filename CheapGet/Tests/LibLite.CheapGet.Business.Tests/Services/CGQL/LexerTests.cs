@@ -77,6 +77,16 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             },
             new LexValidTestCase
             {
+                Input = "load \"query.cgql\"",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.LOAD, "load", 0),
+                    new Token(TokenType.TEXT, "query.cgql", 5),
+                    new Token(TokenType.EOF, "", 17),
+                },
+            },
+            new LexValidTestCase
+            {
                 Input = @"select from filter >= > = != <> < <= sort asc desc take ""text"" 1 1.1 2,2 cls exit",
                 Expected = new List<Token>
                 {

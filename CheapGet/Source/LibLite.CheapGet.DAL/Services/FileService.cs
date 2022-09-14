@@ -6,6 +6,11 @@ namespace LibLite.CheapGet.DAL.Services
 {
     public class FileService : IFileService, IResourceService
     {
+        public Task<string> ReadAsync(string path)
+        {
+            return File.ReadAllTextAsync(path);
+        }
+
         public Task SaveAsync(FileModel file)
         {
             Directory.CreateDirectory(file.Path);

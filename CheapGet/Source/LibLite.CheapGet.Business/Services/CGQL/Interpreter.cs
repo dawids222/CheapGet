@@ -19,14 +19,21 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         private readonly IReportGenerator _reportGenerator;
         private readonly IFileService _fileService;
 
+        private readonly ILexer _lexer;
+        private readonly IParser _parser;
+
         public Interpreter(
             IDictionary<string, IStoreService> storeServices,
             IReportGenerator reportGenerator,
-            IFileService fileService)
+            IFileService fileService,
+            ILexer lexer,
+            IParser parser)
         {
             _storeServices = storeServices;
             _reportGenerator = reportGenerator;
             _fileService = fileService;
+            _lexer = lexer;
+            _parser = parser;
         }
 
         public Task InterpretAsync(Expression expression)
@@ -34,6 +41,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             return expression switch
             {
                 Select select => InterpretSelectAsync(select),
+                Load load => InterpretLoadAsync(load),
                 Cls => InterpretClsAsync(),
                 Exit => InterpretExitAsync(),
                 _ => throw new UnsupportedExpressionException(expression),
@@ -68,6 +76,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             _fileService.Delete(file);
         }
 
+        // TODO: Probably have to abstarct this
         private static FileModel CreateReportFile(Report report)
         {
             return new FileModel
@@ -175,6 +184,16 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             };
         }
 
+        private async Task InterpretLoadAsync(Load load)
+        {
+            var path = load.Source.Value;
+            var query = await _fileService.ReadAsync(path);
+            var tokens = _lexer.Lex(query);
+            var expression = _parser.Parse(tokens);
+            await InterpretAsync(expression);
+        }
+
+        // TODO: In order to test, those have to be abstracted
         private static Task InterpretClsAsync()
         {
             return Task.Run(() => Console.Clear());
