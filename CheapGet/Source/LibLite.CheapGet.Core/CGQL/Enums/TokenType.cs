@@ -16,5 +16,6 @@
         CLS,
         EXIT,
         EOF,
+        UNRECOGNISED,
     }
 }

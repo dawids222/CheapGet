@@ -1,4 +1,6 @@
-﻿namespace LibLite.CheapGet.Business.Exceptions.CGQL
+﻿using LibLite.CheapGet.Core.CGQL.Enums;
+
+namespace LibLite.CheapGet.Business.Exceptions.CGQL
 {
     public class UnrecognisedTokenException : Exception
     {
@@ -6,7 +8,7 @@
         public int Position { get; }
 
         public UnrecognisedTokenException(string token, int position)
-            : base($"'{token}' is not recognised as a valid token at position {position}.")
+            : base($"Token '{token}' is of type '{TokenType.UNRECOGNISED}' and can not be processed in any way at position {position}.")
         {
             Token = token;
             Position = position;

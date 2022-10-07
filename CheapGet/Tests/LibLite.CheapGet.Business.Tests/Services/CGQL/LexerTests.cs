@@ -1,5 +1,4 @@
-﻿using LibLite.CheapGet.Business.Exceptions.CGQL;
-using LibLite.CheapGet.Business.Services.CGQL;
+﻿using LibLite.CheapGet.Business.Services.CGQL;
 using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Models;
 using NUnit.Framework;
@@ -177,47 +176,39 @@ asc",
                     new Token(TokenType.EOF, "", 22),
                 },
             },
+            new LexValidTestCase
+            {
+                Input = "invalid",
+                Expected= new List<Token>
+                {
+                    new Token(TokenType.UNRECOGNISED, "invalid", 0),
+                    new Token(TokenType.EOF, "", 7),
+                },
+            },
+            new LexValidTestCase
+            {
+                Input = "'text'",
+                Expected= new List<Token>
+                {
+                    new Token(TokenType.UNRECOGNISED, "'text'", 0),
+                    new Token(TokenType.EOF, "", 6),
+                },
+            },
+            new LexValidTestCase
+            {
+                Input = @"""""text""",
+                Expected= new List<Token>
+                {
+                    new Token(TokenType.UNRECOGNISED, @"""""text""", 0),
+                    new Token(TokenType.EOF, "", 7),
+                },
+            },
         };
 
         public class LexValidTestCase
         {
             public string Input { get; init; }
             public IEnumerable<Token> Expected { get; init; }
-        }
-
-        [TestCaseSource(nameof(_lexInvalidTestCases))]
-        public void Lex_LexesInvalidInput_ThrowsInvalidTokenException(LexInvalidTestCase test)
-        {
-            void act() => _lexer.Lex(test.Input);
-
-            var exception = Assert.Throws<UnrecognisedTokenException>(act, test.Exception.Message);
-            Assert.AreEqual(test.Exception.Token, exception.Token);
-            Assert.AreEqual(test.Exception.Position, exception.Position);
-        }
-
-        private static readonly IEnumerable<LexInvalidTestCase> _lexInvalidTestCases = new List<LexInvalidTestCase>
-        {
-            new LexInvalidTestCase
-            {
-                Input = "invalid",
-                Exception= new("invalid", 0),
-            },
-            new LexInvalidTestCase
-            {
-                Input = "'text'",
-                Exception= new("'text'", 0),
-            },
-            new LexInvalidTestCase
-            {
-                Input = @"""""text""",
-                Exception= new(@"""""text""", 0),
-            },
-        };
-
-        public class LexInvalidTestCase
-        {
-            public string Input { get; init; }
-            public UnrecognisedTokenException Exception { get; init; }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using LibLite.CheapGet.Client.Console.Services.UI;
 using LibLite.CheapGet.Core.CGQL.Services;
+using LibLite.CheapGet.Core.Extensions;
 using System;
 using System.Threading.Tasks;
 
@@ -34,6 +35,10 @@ namespace LibLite.CheapGet.Client.Console.Services.Application
                     var interpreterTask = _interpreter.InterpretAsync(expression);
                     var progressTask = ProgressBar.DisplayUntilCompletedAsync(interpreterTask);
                     await Task.WhenAll(interpreterTask, progressTask);
+                }
+                catch (AggregateException ex)
+                {
+                    ex.InnerExceptions.ForEach(x => System.Console.WriteLine(x.Message));
                 }
                 catch (Exception ex)
                 {

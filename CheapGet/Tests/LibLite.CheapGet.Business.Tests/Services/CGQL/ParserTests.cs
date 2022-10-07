@@ -166,6 +166,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             void act() => _parser.Parse(test.Tokens);
 
             var exception = Assert.Throws<TException>(act);
+            Assert.AreEqual(test.Exception.GetType(), exception.GetType());
             Assert.AreEqual(test.Exception.Message, exception.Message);
         }
 
@@ -177,6 +178,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 GetLoadExpectedTokenFailureTestCases(),
                 GetValueFailureManualTestCases(),
                 GetValueFailureGeneratedTestCases(),
+                GetUnrecognisedTokenExceptionTestCases(),
                 new List<object>
                 {
                     new ParseInvalidTestCase<ArgumentNullException>
@@ -189,10 +191,12 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 
         private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetExpectedRootTokenFailureTestCases()
         {
+            var unrecognisedTokenType = new TokenType[] { TokenType.UNRECOGNISED };
             return Enum
                 .GetValues(typeof(TokenType))
                 .Cast<TokenType>()
                 .Except(Parser.ROOT_TOKEN_TYPES)
+                .Except(unrecognisedTokenType)
                 .Select(type =>
                 {
                     var token = new Token(type, type.ToString(), 0);
@@ -207,10 +211,12 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 
         private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetSelectExpectedTokenFailureTestCases()
         {
+            var unrecognisedTokenType = new TokenType[] { TokenType.UNRECOGNISED };
             return Enum
                 .GetValues(typeof(TokenType))
                 .Cast<TokenType>()
                 .Except(Parser.SELECT_EXPECTED_TOKEN_TYPES)
+                .Except(unrecognisedTokenType)
                 .Select(type =>
                 {
                     var select = new Token(TokenType.SELECT, Keywords.SELECT, 0);
@@ -227,10 +233,12 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
         private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetLoadExpectedTokenFailureTestCases()
         {
             var textTokenType = new TokenType[] { TokenType.TEXT };
+            var unrecognisedTokenType = new TokenType[] { TokenType.UNRECOGNISED };
             return Enum
                 .GetValues(typeof(TokenType))
                 .Cast<TokenType>()
                 .Except(textTokenType)
+                .Except(unrecognisedTokenType)
                 .Select(type =>
                 {
                     var load = new Token(TokenType.LOAD, Keywords.LOAD, 0);
@@ -303,10 +311,10 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                         {
                             Tokens = new Token[]
                             {
-                            new Token(TokenType.SELECT, Keywords.SELECT, 0),
-                            new Token(TokenType.FILTER, Keywords.FILTER, 7),
-                            new Token(TokenType.TEXT, property, 14),
-                            new Token(TokenType.COMPARISON, comparison, 15 + property.Length),
+                                new Token(TokenType.SELECT, Keywords.SELECT, 0),
+                                new Token(TokenType.FILTER, Keywords.FILTER, 7),
+                                new Token(TokenType.TEXT, property, 14),
+                                new Token(TokenType.COMPARISON, comparison, 15 + property.Length),
                             },
                             Exception = new UnexpectedValueException(
                                 new Token(TokenType.COMPARISON, comparison, 15 + property.Length),
@@ -314,6 +322,22 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                         };
                         tests.Add(test);
                     }
+            return tests;
+        }
+
+        private static IEnumerable<ParseInvalidTestCase<AggregateException>> GetUnrecognisedTokenExceptionTestCases()
+        {
+            var token = new Token(TokenType.UNRECOGNISED, "", 0);
+            var tests = new List<ParseInvalidTestCase<AggregateException>>
+            {
+                new ParseInvalidTestCase<AggregateException>
+                {
+                    Tokens = new Token[] { token },
+                    Exception = new AggregateException(
+                        new UnrecognisedTokenException(token.Value, token.Position),
+                        new UnexpectedTokenException(token, Parser.ROOT_TOKEN_TYPES)),
+                }
+            };
             return tests;
         }
 

@@ -46,10 +46,18 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         private Token Eat(params TokenType[] types)
         {
             var token = _tokens.First();
+
+            if (token.Type == TokenType.UNRECOGNISED)
+            {
+                throw new AggregateException(
+                    new UnrecognisedTokenException(token.Value, token.Position),
+                    new UnexpectedTokenException(token, types));
+            }
             if (!types.Contains(token.Type))
             {
                 throw new UnexpectedTokenException(token, types);
             }
+
             _tokens.RemoveAt(0);
             return token;
         }

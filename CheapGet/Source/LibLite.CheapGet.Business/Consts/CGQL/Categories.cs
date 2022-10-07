@@ -2,7 +2,7 @@
 {
     public static class Categories
     {
-        public const string GAMES = "games";
+        public const string GAMES = "Games";
 
         public static readonly IEnumerable<string> ALL = new[]
         {

@@ -1,5 +1,4 @@
 ﻿using LibLite.CheapGet.Business.Consts.CGQL;
-using LibLite.CheapGet.Business.Exceptions.CGQL;
 using LibLite.CheapGet.Core.CGQL.Enums;
 using LibLite.CheapGet.Core.CGQL.Models;
 using LibLite.CheapGet.Core.CGQL.Services;
@@ -58,7 +57,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             if (IsDecimalToken(lowerToken)) return TokenType.FLOATING;
             if (IsIntegerToken(lowerToken)) return TokenType.INTEGER;
             if (IsTextToken(token)) return TokenType.TEXT;
-            throw new UnrecognisedTokenException(token, position);
+            return TokenType.UNRECOGNISED;
         }
 
         private static bool IsSortDirectionToken(string token) => Keywords.SORT_DIRECTIONS.Contains(token);
