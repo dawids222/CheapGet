@@ -19,7 +19,7 @@ namespace LibLite.CheapGet.Business.Services.Reports
             _resourceService = resourceService;
         }
 
-        public async Task<Report> GenerateReportAsync(IEnumerable<Product> products)
+        public async Task<Report> GenerateAsync(IEnumerable<Product> products)
         {
             var builder = new StringBuilder();
             foreach (var product in products)

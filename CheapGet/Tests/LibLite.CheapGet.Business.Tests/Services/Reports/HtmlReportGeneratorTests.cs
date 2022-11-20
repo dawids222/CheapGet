@@ -40,7 +40,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
                 new GogProduct("gog_game", 20, 7.5, "http://gog_game.com", "http://gog_game.com/app/4321"),
             };
 
-            var result = await _reportGenerator.GenerateReportAsync(products);
+            var result = await _reportGenerator.GenerateAsync(products);
 
             var expected = @$"
             <html><head></head><body><table>
@@ -82,7 +82,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
                 new GogProduct("gog_game", 20, 7.5, "http://gog_game.com", "http://gog_game.com/app/4321"),
             };
 
-            Task act() => _reportGenerator.GenerateReportAsync(products);
+            Task act() => _reportGenerator.GenerateAsync(products);
 
             Assert.ThrowsAsync<Exception>(act, exception.Message);
         }

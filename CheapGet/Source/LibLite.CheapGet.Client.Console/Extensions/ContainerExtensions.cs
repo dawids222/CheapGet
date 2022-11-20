@@ -30,7 +30,10 @@ namespace LibLite.CheapGet.Client.Console.Extensions
             container.Scoped(provider => (IResourceService)provider.Get<IFileService>());
 
             container.Scoped<IReportGenerator, HtmlReportGenerator>();
-            container.Scoped<ISerializer, SystemTextJsonSerializer>();
+            container.Scoped<IReportPresenter, HtmlReportPresenter>();
+
+            container.Scoped<ISerializer, SystemTextJsonSerializer>(Tags.Serializers.Json);
+            container.Scoped(provider => provider.Get<ISerializer>(Tags.Serializers.Json));
 
             container.Scoped<ISteamClient, SteamClient>();
             container.Scoped<IGogClient, GogClient>();

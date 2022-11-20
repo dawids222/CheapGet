@@ -5,6 +5,6 @@ namespace LibLite.CheapGet.Core.Services
 {
     public interface IReportGenerator
     {
-        Task<Report> GenerateReportAsync(IEnumerable<Product> products);
+        Task<Report> GenerateAsync(IEnumerable<Product> products);
     }
 }

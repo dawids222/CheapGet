@@ -21,8 +21,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
         private IDictionary<string, IStoreService> _storeServicesMock;
         private Mock<IStoreService> _storeServiceMock;
         private Mock<IReportGenerator> _reportGeneratorMock;
+        private Mock<IReportPresenter> _reportPresenterMock;
         private Mock<IFileService> _fileServiceMock;
-
         private Mock<ILexer> _lexerMock;
         private Mock<IParser> _parserMock;
 
@@ -37,6 +37,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 { Categories.GAMES, _storeServiceMock.Object }
             };
             _reportGeneratorMock = new();
+            _reportPresenterMock = new();
             _fileServiceMock = new();
             _lexerMock = new();
             _parserMock = new();
@@ -44,6 +45,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             _interpreter = new(
                 _storeServicesMock,
                 _reportGeneratorMock.Object,
+                _reportPresenterMock.Object,
                 _fileServiceMock.Object,
                 _lexerMock.Object,
                 _parserMock.Object);
@@ -69,7 +71,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 .Setup(x => x.GetDiscountedProductsAsync(It.IsAny<GetProductsRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(products);
             _reportGeneratorMock
-                .Setup(x => x.GenerateReportAsync(products))
+                .Setup(x => x.GenerateAsync(products))
                 .ReturnsAsync(report);
 
             await _interpreter.InterpretAsync(expression);

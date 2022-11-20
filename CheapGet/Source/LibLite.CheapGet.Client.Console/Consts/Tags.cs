@@ -24,5 +24,15 @@ namespace LibLite.CheapGet.Client.Console.Consts
                 Games,
             };
         }
+
+        public static class Serializers
+        {
+            public const string Json = "Json";
+
+            public static readonly IEnumerable<string> All = new[]
+            {
+                Json,
+            };
+        }
     }
 }

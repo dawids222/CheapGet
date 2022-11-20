@@ -7,7 +7,6 @@ using LibLite.CheapGet.Core.CGQL.Services;
 using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Services;
-using LibLite.CheapGet.Core.Services.Models;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Models;
 
@@ -17,20 +16,22 @@ namespace LibLite.CheapGet.Business.Services.CGQL
     {
         private readonly IDictionary<string, IStoreService> _storeServices;
         private readonly IReportGenerator _reportGenerator;
+        private readonly IReportPresenter _reportPresenter;
         private readonly IFileService _fileService;
-
         private readonly ILexer _lexer;
         private readonly IParser _parser;
 
         public Interpreter(
             IDictionary<string, IStoreService> storeServices,
             IReportGenerator reportGenerator,
+            IReportPresenter reportPresenter,
             IFileService fileService,
             ILexer lexer,
             IParser parser)
         {
             _storeServices = storeServices;
             _reportGenerator = reportGenerator;
+            _reportPresenter = reportPresenter;
             _fileService = fileService;
             _lexer = lexer;
             _parser = parser;
@@ -51,7 +52,8 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         private async Task InterpretSelectAsync(Select select)
         {
             var products = await GetProductsAsync(select);
-            await DisplayReportAsync(products);
+            var report = await _reportGenerator.GenerateAsync(products);
+            await _reportPresenter.PresentAsync(report);
         }
 
         private Task<IEnumerable<Product>> GetProductsAsync(Select select)
@@ -64,32 +66,6 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             var storeService = _storeServices[from];
             var parameters = new GetProductsRequest(count, filters, sorts);
             return storeService.GetDiscountedProductsAsync(parameters, CancellationToken.None);
-        }
-
-        private async Task DisplayReportAsync(IEnumerable<Product> products)
-        {
-            var report = await _reportGenerator.GenerateReportAsync(products);
-            var file = CreateReportFile(report);
-            await _fileService.SaveAsync(file);
-            _fileService.Open(file);
-            await Task.Delay(1000);
-            _fileService.Delete(file);
-        }
-
-        // TODO: Probably have to abstarct this
-        private static FileModel CreateReportFile(Report report)
-        {
-            return new FileModel
-            {
-                Path = $"{Directory.GetCurrentDirectory()}\\Reports",
-                Name = DateTime.Now.ToString("yyyy-MM-ddTHH.mm.ss.fffffff"),
-                Extension = report.Format switch
-                {
-                    ReportFormat.HTML => "html",
-                    _ => throw new NotImplementedException(),
-                },
-                Content = report.GetBytes(),
-            };
         }
 
         private static IEnumerable<ICollectionFilter<Product>> InterpretFilter(IEnumerable<Filter> filters)
