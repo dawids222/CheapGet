@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Source\LibLite.CheapGet.Business\LibLite.CheapGet.Business.csproj" />
+    <ProjectReference Include="..\..\Source\LibLite.CheapGet.Client.Console\LibLite.CheapGet.Client.Console.csproj" />
   </ItemGroup>
 
 </Project>

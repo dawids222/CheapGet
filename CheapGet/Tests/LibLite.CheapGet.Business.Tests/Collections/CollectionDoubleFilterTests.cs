@@ -26,6 +26,8 @@ namespace LibLite.CheapGet.Business.Tests.Collections
             var result = test.Filter.Apply(_values);
 
             CollectionAssert.AreEqual(expected, result);
+            Assert.That(test.Filter.Operator, Is.EqualTo(test.ExpectedOperator));
+            Assert.That(test.Filter.Value, Is.EqualTo(test.ExpectedValue));
         }
 
         private static readonly CollectionDoubleFilterTest[] _collectionDoubleFilterTests = new[]
@@ -34,31 +36,43 @@ namespace LibLite.CheapGet.Business.Tests.Collections
             {
                 Filter = new CollectionDoubleFilter<double>(x => x, NumberRelationalOperator.GREATER, 3.14),
                 Func = x => x > 3.14,
+                ExpectedOperator = NumberRelationalOperator.GREATER,
+                ExpectedValue = 3.14,
             },
             new CollectionDoubleFilterTest
             {
                 Filter = new CollectionDoubleFilter<double>(x => x, NumberRelationalOperator.GREATER_OR_EQUAL, 3.14),
                 Func = x => x >= 3.14,
+                ExpectedOperator = NumberRelationalOperator.GREATER_OR_EQUAL,
+                ExpectedValue = 3.14,
             },
             new CollectionDoubleFilterTest
             {
                 Filter = new CollectionDoubleFilter<double>(x => x, NumberRelationalOperator.EQUAL, 3.14),
                 Func = x => x == 3.14,
+                ExpectedOperator = NumberRelationalOperator.EQUAL,
+                ExpectedValue = 3.14,
             },
             new CollectionDoubleFilterTest
             {
                 Filter = new CollectionDoubleFilter<double>(x => x, NumberRelationalOperator.NOT_EQUAL, 3.14),
                 Func = x => x != 3.14,
+                ExpectedOperator = NumberRelationalOperator.NOT_EQUAL,
+                ExpectedValue = 3.14,
             },
             new CollectionDoubleFilterTest
             {
                 Filter = new CollectionDoubleFilter<double>(x => x, NumberRelationalOperator.LESS_OR_EQUAL, 3.14),
                 Func = x => x <= 3.14,
+                ExpectedOperator = NumberRelationalOperator.LESS_OR_EQUAL,
+                ExpectedValue = 3.14,
             },
             new CollectionDoubleFilterTest
             {
                 Filter = new CollectionDoubleFilter<double>(x => x, NumberRelationalOperator.LESS, 3.14),
                 Func = x => x < 3.14,
+                ExpectedOperator = NumberRelationalOperator.LESS,
+                ExpectedValue = 3.14,
             },
         };
 
@@ -66,6 +80,8 @@ namespace LibLite.CheapGet.Business.Tests.Collections
         {
             public CollectionDoubleFilter<double> Filter { get; init; }
             public Func<double, bool> Func { get; init; }
+            public NumberRelationalOperator ExpectedOperator { get; init; }
+            public double ExpectedValue { get; init; }
         }
     }
 }

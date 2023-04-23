@@ -35,6 +35,8 @@ namespace LibLite.CheapGet.Business.Tests.Collections
             var result = test.Filter.Apply(_values);
 
             CollectionAssert.AreEqual(expected, result);
+            Assert.That(test.Filter.Operator, Is.EqualTo(test.ExpectedOperator));
+            Assert.That(test.Filter.Value, Is.EqualTo(test.ExpctedValue));
         }
 
         private static readonly CollectionStringFilterTest[] _CollectionStringFilterTests = new[]
@@ -43,11 +45,15 @@ namespace LibLite.CheapGet.Business.Tests.Collections
             {
                 Filter = new CollectionStringFilter<string>(x => x, StringRelationalOperator.EQUAL, "test0"),
                 Func = x => x == "test0",
+                ExpectedOperator = StringRelationalOperator.EQUAL,
+                ExpctedValue = "test0",
             },
             new CollectionStringFilterTest
             {
                 Filter = new CollectionStringFilter<string>(x => x, StringRelationalOperator.CONTAIN,"test"),
                 Func = x => x.Contains("test"),
+                ExpectedOperator = StringRelationalOperator.CONTAIN,
+                ExpctedValue = "test",
             },
         };
 
@@ -55,6 +61,8 @@ namespace LibLite.CheapGet.Business.Tests.Collections
         {
             public CollectionStringFilter<string> Filter { get; init; }
             public Func<string, bool> Func { get; init; }
+            public StringRelationalOperator ExpectedOperator { get; init; }
+            public string ExpctedValue { get; init; }
         }
     }
 }

@@ -5,11 +5,16 @@ namespace LibLite.CheapGet.Business.Collections
 {
     public class CollectionStringFilter<T> : CollectionFilter<T>
     {
+        public StringRelationalOperator Operator { get; }
+        public string Value { get; }
+
         public CollectionStringFilter(
             Func<T, string> func,
             StringRelationalOperator @operator,
             string value)
         {
+            Operator = @operator;
+            Value = value;
             Predicate = x => ToPredicate(func(x), @operator, value);
         }
 

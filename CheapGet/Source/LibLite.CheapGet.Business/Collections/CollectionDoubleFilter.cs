@@ -5,11 +5,16 @@ namespace LibLite.CheapGet.Business.Collections
 {
     public class CollectionDoubleFilter<T> : CollectionFilter<T>
     {
+        public NumberRelationalOperator Operator { get; }
+        public double Value { get; }
+
         public CollectionDoubleFilter(
             Func<T, double> func,
             NumberRelationalOperator @operator,
             double value)
         {
+            Operator = @operator;
+            Value = value;
             Predicate = x => ToPredicate(func(x), @operator, value);
         }
 

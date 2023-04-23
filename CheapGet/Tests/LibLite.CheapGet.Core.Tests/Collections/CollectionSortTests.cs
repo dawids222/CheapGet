@@ -90,5 +90,14 @@ namespace LibLite.CheapGet.Core.Tests.Collections
 
             CollectionAssert.AreEqual(expected, result);
         }
+
+        [TestCase(SortDirection.ASC)]
+        [TestCase(SortDirection.DESC)]
+        public void Constructor_SetsSortDirection(SortDirection direction)
+        {
+            var sort = new CollectionSort<CollectionOperationModel, string>(x => x.StringValue, direction);
+
+            Assert.That(sort.SortDirection, Is.EqualTo(direction));
+        }
     }
 }

@@ -4,6 +4,7 @@ using LibLite.CheapGet.Client.Console.Extensions;
 using LibLite.CheapGet.Core.CGQL.Expressions;
 using LibLite.CheapGet.Core.CGQL.Services;
 using LibLite.CheapGet.Core.Collections;
+using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Services.Models;
 using LibLite.CheapGet.Core.Stores;
@@ -11,13 +12,18 @@ using LibLite.CheapGet.Core.Stores.Games.Steam;
 using LibLite.CheapGet.Core.Stores.Models;
 using LibLite.DI.Lite;
 using Moq;
+using NUnit.Framework;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace LibLite.CheapGet.IntegrationTests
+namespace LibLite.CheapGet.Business.Tests.Services.CGQL
 {
     [TestFixture]
     public class InterpreterTests : IDisposable
     {
-        private readonly Container _container;
+        private readonly DI.Lite.Container _container;
         private readonly DependencyProvider _scope;
 
         private readonly Mock<IStoreService> _gameStoreServiceMock;
@@ -32,7 +38,7 @@ namespace LibLite.CheapGet.IntegrationTests
 
         public InterpreterTests()
         {
-            _container = new Container();
+            _container = new();
             _container.RegisterDependencies();
 
             _container.Remove<IStoreService>(Tags.StoreServices.Games);
@@ -138,8 +144,14 @@ namespace LibLite.CheapGet.IntegrationTests
                         x.Count == 200 &&
                         x.Filters.Count() == 3 &&
                         x.Filters.ElementAt(0) is CollectionStringFilter<Product> &&
+                        ((CollectionStringFilter<Product>)x.Filters.ElementAt(0)).Operator == StringRelationalOperator.CONTAIN &&
+                        ((CollectionStringFilter<Product>)x.Filters.ElementAt(0)).Value == "the" &&
                         x.Filters.ElementAt(1) is CollectionDoubleFilter<Product> &&
+                        ((CollectionDoubleFilter<Product>)x.Filters.ElementAt(1)).Operator == NumberRelationalOperator.LESS_OR_EQUAL &&
+                        ((CollectionDoubleFilter<Product>)x.Filters.ElementAt(1)).Value == 100 &&
                         x.Filters.ElementAt(2) is CollectionDoubleFilter<Product> &&
+                        ((CollectionDoubleFilter<Product>)x.Filters.ElementAt(2)).Operator == NumberRelationalOperator.GREATER_OR_EQUAL &&
+                        ((CollectionDoubleFilter<Product>)x.Filters.ElementAt(2)).Value == 49.5 &&
                         x.Sorts.Count() == 2 &&
                         x.Sorts.ElementAt(0) is CollectionSort<Product, string> &&
                         x.Sorts.ElementAt(0).SortDirection == Core.Enums.SortDirection.ASC &&
