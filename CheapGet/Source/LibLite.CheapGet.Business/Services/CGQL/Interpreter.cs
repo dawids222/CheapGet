@@ -15,6 +15,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
     public class Interpreter : IInterpreter
     {
         private readonly IDictionary<string, IStoreService> _storeServices;
+        private readonly IEnvironmentService _environmentService;
         private readonly IReportGenerator _reportGenerator;
         private readonly IReportPresenter _reportPresenter;
         private readonly IFileService _fileService;
@@ -23,6 +24,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
 
         public Interpreter(
             IDictionary<string, IStoreService> storeServices,
+            IEnvironmentService environmentService,
             IReportGenerator reportGenerator,
             IReportPresenter reportPresenter,
             IFileService fileService,
@@ -30,6 +32,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             IParser parser)
         {
             _storeServices = storeServices;
+            _environmentService = environmentService;
             _reportGenerator = reportGenerator;
             _reportPresenter = reportPresenter;
             _fileService = fileService;
@@ -169,15 +172,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             await InterpretAsync(expression);
         }
 
-        // TODO: In order to test, those have to be abstracted
-        private static Task InterpretClsAsync()
-        {
-            return Task.Run(() => Console.Clear());
-        }
-
-        private static Task InterpretExitAsync()
-        {
-            return Task.Run(() => Environment.Exit(0));
-        }
+        private Task InterpretClsAsync() => _environmentService.ClearInputAsync();
+        private Task InterpretExitAsync() => _environmentService.ExitApplicationAsync();
     }
 }

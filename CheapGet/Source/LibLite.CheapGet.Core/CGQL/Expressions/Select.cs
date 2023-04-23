@@ -2,8 +2,11 @@
 {
     public class Select : Expression
     {
-        public From From { get; set; } = new From(new Text("Games"));
-        public Take Take { get; set; } = new Take(new Integer(100));
+        public const string DEFAULT_FROM = "Games";
+        public const int DEFAULT_TAKE = 100;
+
+        public From From { get; set; } = new From(new Text(DEFAULT_FROM));
+        public Take Take { get; set; } = new Take(new Integer(DEFAULT_TAKE));
         public List<Filter> Filters { get; set; } = new();
         public List<Sort> Sorts { get; set; } = new();
 

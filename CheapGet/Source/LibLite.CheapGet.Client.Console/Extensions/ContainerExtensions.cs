@@ -3,6 +3,7 @@ using LibLite.CheapGet.Business.Services.Reports;
 using LibLite.CheapGet.Business.Services.Serializers;
 using LibLite.CheapGet.Business.Services.Stores;
 using LibLite.CheapGet.Client.Console.Consts;
+using LibLite.CheapGet.Client.Console.Services;
 using LibLite.CheapGet.Client.Console.Services.Application;
 using LibLite.CheapGet.Core.CGQL.Services;
 using LibLite.CheapGet.Core.Services;
@@ -74,6 +75,8 @@ namespace LibLite.CheapGet.Client.Console.Extensions
             container.Scoped<IInterpreter, Interpreter>();
 
             container.Scoped<IApplication, Application>();
+
+            container.Scoped<IEnvironmentService, EnvironmentService>();
 
             var constructabilityReport = container.GetConstructabilityReport();
             if (!constructabilityReport.IsConstructable)
