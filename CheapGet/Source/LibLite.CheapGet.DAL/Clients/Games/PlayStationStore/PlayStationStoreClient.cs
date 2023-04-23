@@ -8,8 +8,13 @@ namespace LibLite.CheapGet.DAL.Clients.Games.PlayStationStore
 {
     public class PlayStationStoreClient : IPlayStationStoreClient
     {
-        public const string PRODUCT_PAGE_URL_TEMPLATE = "https://store.playstation.com/pl-pl/product/";
+        private const string AUTH_URL = "https://store.playstation.com/pl-pl/pages/deals";
+        private const string AUTH_TOKEN_REGEX = "(?<=\"categoryId\":\")(.*?)(?=\",)";
+
+        private const string PRODUCT_PAGE_URL_TEMPLATE = "https://store.playstation.com/pl-pl/product/";
         private const int PRODUCTS_PER_REQUEST = 100;
+
+        private readonly Dictionary<string, string> HEADERS = new() { { "x-psn-store-locale-override", "pl-PL" } };
 
         private readonly IHttpClient _httpClient;
 
@@ -45,8 +50,7 @@ namespace LibLite.CheapGet.DAL.Clients.Games.PlayStationStore
         {
             var authToken = await GetAuthTokenAsync(token);
             var url = "https://web.np.playstation.com/api/graphql/v1//op?operationName=categoryGridRetrieve&variables={\"id\":\"" + authToken + "\",\"pageArgs\":{\"size\":" + PRODUCTS_PER_REQUEST + ",\"offset\":" + PRODUCTS_PER_REQUEST * page + "},\"sortBy\":{\"name\":\"sales30\",\"isAscending\":false},\"filterBy\":[],\"facetOptions\":[]}&extensions={\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"4ce7d410a4db2c8b635a48c1dcec375906ff63b19dadd87e073f8fd0c0481d35\"}}";
-            var headers = new Dictionary<string, string> { { "x-psn-store-locale-override", "pl-PL" } };
-            var response = await _httpClient.GetAsync<PlayStationStoreGetDiscountedProductsResponse>(url, headers, token);
+            var response = await _httpClient.GetAsync<PlayStationStoreGetDiscountedProductsResponse>(url, HEADERS, token);
             return response
             .Data
             .CategoryGridRetrieve
@@ -62,9 +66,8 @@ namespace LibLite.CheapGet.DAL.Clients.Games.PlayStationStore
 
         private async Task<string> GetAuthTokenAsync(CancellationToken token)
         {
-            var url = "https://store.playstation.com/pl-pl/pages/deals";
-            var result = await _httpClient.GetStringAsync(url, token);
-            var regex = new Regex("(?<=\"categoryId\":\")(.*?)(?=\",)");
+            var result = await _httpClient.GetStringAsync(AUTH_URL, token);
+            var regex = new Regex(AUTH_TOKEN_REGEX);
             var match = regex.Match(result);
 
             if (match is null || !match.Success)

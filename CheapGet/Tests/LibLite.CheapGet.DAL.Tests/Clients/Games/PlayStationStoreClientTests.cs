@@ -35,7 +35,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             _headers = new() { { "x-psn-store-locale-override", "pl-PL" } };
 
             _httpClientMock
-                .Setup(x => x.GetStringAsync(It.IsAny<string>(), _token))
+                .Setup(x => x.GetStringAsync("https://store.playstation.com/pl-pl/pages/deals", _token))
                 .ReturnsAsync(_authTokenResponse);
         }
 
