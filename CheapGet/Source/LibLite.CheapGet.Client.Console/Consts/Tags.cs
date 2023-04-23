@@ -8,10 +8,11 @@ namespace LibLite.CheapGet.Client.Console.Consts
         {
             public const string Steam = "Steam";
             public const string GoG = "GoG";
+            public const string PlayStationStore = "PlayStationStore";
 
             public static readonly IEnumerable<string> All = new[]
             {
-                Steam, GoG,
+                Steam, GoG, PlayStationStore,
             };
         }
 

@@ -1,9 +1,11 @@
 ﻿using LibLite.CheapGet.Core.Services;
-using LibLite.CheapGet.DAL.Services;
 using Moq;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +15,7 @@ namespace LibLite.CheapGet.DAL.Tests.Services
     public class HttpClientTests
     {
         const string URL = "https://localhost/";
+        private static readonly Dictionary<string, string> HEADERS = new() { { "key", "value" } };
 
         private CancellationToken _token;
 
@@ -20,7 +23,7 @@ namespace LibLite.CheapGet.DAL.Tests.Services
         private System.Net.Http.HttpClient _httpClient;
         private Mock<ISerializer> _serializerMock;
 
-        private HttpClient _client;
+        private DAL.Services.HttpClient _client;
 
         [SetUp]
         public void SetUp()
@@ -53,10 +56,31 @@ namespace LibLite.CheapGet.DAL.Tests.Services
                 .Setup(x => x.Deserialize<Response>(response))
                 .Returns(expected);
             _httpMessageHandlerMock
-                .When(System.Net.Http.HttpMethod.Get, URL)
+                .When(HttpMethod.Get, URL)
                 .Respond("application/json", response);
 
             var result = await _client.GetAsync<Response>(URL, _token);
+
+            Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        public async Task GetAsync_WithHeaders_Success_ReturnsResponse()
+        {
+            var expected = new Response
+            {
+                Text = "This is text",
+                Number = 1234,
+            };
+            var response = $"{{\"Text\": \"{expected.Text}\", \"Number\": {expected.Number}}}";
+            _serializerMock
+                .Setup(x => x.Deserialize<Response>(response))
+                .Returns(expected);
+            _httpMessageHandlerMock
+                .When(HttpMethod.Get, URL)
+                .With(x => x.ContainsHeaders(HEADERS))
+                .Respond("application/json", response);
+            var result = await _client.GetAsync<Response>(URL, HEADERS, _token);
 
             Assert.AreEqual(expected, result);
         }
@@ -66,10 +90,24 @@ namespace LibLite.CheapGet.DAL.Tests.Services
         {
             var exception = new Exception("Error!");
             _httpMessageHandlerMock
-                .When(System.Net.Http.HttpMethod.Get, URL)
+                .When(HttpMethod.Get, URL)
                 .Throw(exception);
 
             Task act() => _client.GetAsync<Response>(URL, _token);
+
+            Assert.ThrowsAsync<Exception>(act, exception.Message);
+        }
+
+        [Test]
+        public void GetAsync_WithHeaders_HttpClientThrows_ThrowsTheSameException()
+        {
+            var exception = new Exception("Error!");
+            _httpMessageHandlerMock
+                .When(HttpMethod.Get, URL)
+                .With(x => x.ContainsHeaders(HEADERS))
+                .Throw(exception);
+
+            Task act() => _client.GetAsync<Response>(URL, HEADERS, _token);
 
             Assert.ThrowsAsync<Exception>(act, exception.Message);
         }
@@ -82,10 +120,53 @@ namespace LibLite.CheapGet.DAL.Tests.Services
                 .Setup(x => x.Deserialize<Response>(It.IsAny<string>()))
                 .Throws(exception);
             _httpMessageHandlerMock
-                .When(System.Net.Http.HttpMethod.Get, URL)
+                .When(HttpMethod.Get, URL)
                 .Respond("application/json", "response");
 
             Task act() => _client.GetAsync<Response>(URL, _token);
+
+            Assert.ThrowsAsync<Exception>(act, exception.Message);
+        }
+
+        [Test]
+        public void GetAsync_WithHeaders_SerializerThrows_ThrowsTheSameException()
+        {
+            var exception = new Exception("Error!");
+            _serializerMock
+                .Setup(x => x.Deserialize<Response>(It.IsAny<string>()))
+                .Throws(exception);
+            _httpMessageHandlerMock
+                .When(HttpMethod.Get, URL)
+                .With(x => x.ContainsHeaders(HEADERS))
+                .Respond("application/json", "response");
+
+            Task act() => _client.GetAsync<Response>(URL, HEADERS, _token);
+
+            Assert.ThrowsAsync<Exception>(act, exception.Message);
+        }
+
+        [Test]
+        public async Task GetStringAsync_Success_ReturnContentString()
+        {
+            var expected = "expected";
+            _httpMessageHandlerMock
+                .When(HttpMethod.Get, URL)
+                .Respond("text/plain", expected);
+
+            var result = await _client.GetStringAsync(URL, _token);
+
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void GetStringAsync_HttpClientThrows_ThrowsTheSameException()
+        {
+            var exception = new Exception("Error!");
+            _httpMessageHandlerMock
+                .When(HttpMethod.Get, URL)
+                .Throw(exception);
+
+            Task act() => _client.GetStringAsync(URL, _token);
 
             Assert.ThrowsAsync<Exception>(act, exception.Message);
         }
@@ -106,6 +187,14 @@ namespace LibLite.CheapGet.DAL.Tests.Services
             {
                 return HashCode.Combine(Text, Number);
             }
+        }
+    }
+
+    internal static class HttpRequestMessageExtensions
+    {
+        public static bool ContainsHeaders(this HttpRequestMessage message, Dictionary<string, string> header)
+        {
+            return header.All(x => message.Headers.Contains(x.Key) && message.Headers.First(x => x.Key == x.Key).Value.First() == x.Value);
         }
     }
 }

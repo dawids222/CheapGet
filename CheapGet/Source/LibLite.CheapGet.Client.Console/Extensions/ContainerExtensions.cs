@@ -8,9 +8,11 @@ using LibLite.CheapGet.Core.CGQL.Services;
 using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.GoG;
+using LibLite.CheapGet.Core.Stores.Games.PlayStationStore;
 using LibLite.CheapGet.Core.Stores.Games.Steam;
 using LibLite.CheapGet.DAL.Clients.Games;
 using LibLite.CheapGet.DAL.Clients.Games.GoG;
+using LibLite.CheapGet.DAL.Clients.Games.PlayStationStore;
 using LibLite.CheapGet.DAL.Services;
 using LibLite.DI.Lite;
 using System;
@@ -37,13 +39,19 @@ namespace LibLite.CheapGet.Client.Console.Extensions
 
             container.Scoped<ISteamClient, SteamClient>();
             container.Scoped<IGogClient, GogClient>();
+            container.Scoped<IPlayStationStoreClient, PlayStationStoreClient>();
 
             container.Scoped(Tags.Stores.Steam, provider => (IStoreClient)provider.Get<ISteamClient>());
             container.Scoped(Tags.Stores.GoG, provider => (IStoreClient)provider.Get<IGogClient>());
+            container.Scoped(Tags.Stores.PlayStationStore, provider => (IStoreClient)provider.Get<IPlayStationStoreClient>());
 
             container.Scoped<IStoreService>(Tags.StoreServices.Games, provider =>
             {
-                var names = new[] { Tags.Stores.Steam, Tags.Stores.GoG };
+                var names = new[] {
+                    Tags.Stores.Steam,
+                    Tags.Stores.GoG,
+                    Tags.Stores.PlayStationStore,
+                };
                 var stores = names
                     .Select(name => provider.Get<IStoreClient>(name))
                     .ToList();

@@ -43,7 +43,7 @@ namespace LibLite.CheapGet.DAL.Clients.Games.GoG
         private async Task<IEnumerable<GogProduct>> GetDiscountedProductsAsync(int page, CancellationToken token)
         {
             var url = $"https://catalog.gog.com/v1/catalog?limit={PRODUCTS_PER_REQUEST}&order=desc%3Atrending&discounted=eq%3Atrue&productType=in%3Agame%2Cpack&page={page + 1}&countryCode=PL&locale=pl-PL&currencyCode=PLN";
-            var response = await _httpClient.GetAsync<GogGetDiscountedProductsResponse>(url, CancellationToken.None);
+            var response = await _httpClient.GetAsync<GogGetDiscountedProductsResponse>(url, token);
 
             return response
                 .Products

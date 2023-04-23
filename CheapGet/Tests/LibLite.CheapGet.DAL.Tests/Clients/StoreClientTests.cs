@@ -20,7 +20,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients
         protected TClient _client;
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
             _exception = new Exception("Error!");
             _token = new();
