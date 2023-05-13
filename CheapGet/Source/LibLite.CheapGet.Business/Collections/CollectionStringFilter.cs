@@ -23,7 +23,7 @@ namespace LibLite.CheapGet.Business.Collections
             return @operator switch
             {
                 StringRelationalOperator.EQUAL => x == y,
-                StringRelationalOperator.CONTAIN => x.Contains(y),
+                StringRelationalOperator.CONTAIN => x.Contains(y, StringComparison.InvariantCultureIgnoreCase),
                 _ => throw new NotImplementedException(),
             };
         }

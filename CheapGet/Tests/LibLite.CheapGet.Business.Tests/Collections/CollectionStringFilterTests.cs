@@ -55,6 +55,13 @@ namespace LibLite.CheapGet.Business.Tests.Collections
                 ExpectedOperator = StringRelationalOperator.CONTAIN,
                 ExpctedValue = "test",
             },
+            new CollectionStringFilterTest
+            {
+                Filter = new CollectionStringFilter<string>(x => x, StringRelationalOperator.CONTAIN,"TeSt"),
+                Func = x => x.Contains("test", StringComparison.InvariantCultureIgnoreCase),
+                ExpectedOperator = StringRelationalOperator.CONTAIN,
+                ExpctedValue = "TeSt",
+            },
         };
 
         public class CollectionStringFilterTest

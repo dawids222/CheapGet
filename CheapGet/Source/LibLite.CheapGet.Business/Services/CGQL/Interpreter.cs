@@ -45,6 +45,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             return expression switch
             {
                 Select select => InterpretSelectAsync(select),
+                Wishlist wishlist => InterpretWishlistAsync(wishlist),
                 Load load => InterpretLoadAsync(load),
                 Cls => InterpretClsAsync(),
                 Exit => InterpretExitAsync(),
@@ -161,6 +162,57 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 Properties.DISCOUNT_VALUE => new CollectionSort<Product, double>(x => x.DiscountValue, direction),
                 _ => throw new NotImplementedException(),
             };
+        }
+
+        private async Task InterpretWishlistAsync(Wishlist wishlist)
+        {
+            var products = await GetProductsAsync(wishlist);
+            var report = await _reportGenerator.GenerateAsync(products);
+            await _reportPresenter.PresentAsync(report);
+        }
+
+        private async Task<IEnumerable<Product>> GetProductsAsync(Wishlist wishlist)
+        {
+            var count = wishlist.Max.Value.Value;
+            var filters = InterpretWish(wishlist.Wishes);
+            var from = wishlist.From.Text.Value;
+
+            var storeService = _storeServices[from];
+            var tasks = storeService.Stores
+                .Select(x => x.GetDiscountedProductsAsync(count, CancellationToken.None))
+                .ToList();
+            var results = await Task.WhenAll(tasks);
+            var products = results.SelectMany(x => x).ToList();
+            var filter = filters.Aggregate((current, next) => current.Or(next));
+            var result = filter.Apply(products).ToList();
+            return result;
+        }
+
+        private static IEnumerable<ICollectionFilter<Product>> InterpretWish(IEnumerable<Wish> wishes)
+        {
+            return wishes
+                .Select(InterpretWish)
+                .ToList();
+        }
+
+        private static ICollectionFilter<Product> InterpretWish(Wish wish)
+        {
+            ICollectionFilter<Product> result = null;
+            var filters = wish.Filters;
+            foreach (var filter in filters)
+            {
+                var partial = filter.Value.Type switch
+                {
+                    TokenType.TEXT => CreateStringFilter(filter.Property.Value, ToStringRelationalOperator(filter.Comparison.Value), filter.Value.AsText().Value),
+                    TokenType.INTEGER => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsInteger().Value),
+                    TokenType.FLOATING => CreateDoubleFilter(filter.Property.Value, ToNumberRelationalOperator(filter.Comparison.Value), filter.Value.AsDecimal().Value),
+                    _ => throw new NotImplementedException(),
+                };
+                result = result is not null
+                    ? result.And(partial)
+                    : partial;
+            }
+            return result;
         }
 
         private async Task InterpretLoadAsync(Load load)

@@ -151,6 +151,55 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     },
                 },
             },
+            new ParseValidTestCase
+            {
+                Tokens = new List<Token>
+                {
+                    new Token(TokenType.WISHLIST, "wishlist", 0),
+                    new Token(TokenType.FROM, "from", 9),
+                    new Token(TokenType.TEXT, "Games", 14),
+                    new Token(TokenType.WISH, "wish", 22),
+                    new Token(TokenType.FILTER, "filter", 27),
+                    new Token(TokenType.TEXT, "name", 34),
+                    new Token(TokenType.COMPARISON, "<>", 41),
+                    new Token(TokenType.TEXT, "south park", 44),
+                    new Token(TokenType.WISH, "wish", 57),
+                    new Token(TokenType.FILTER, "filter", 62),
+                    new Token(TokenType.TEXT, "name", 69),
+                    new Token(TokenType.COMPARISON, "<>", 76),
+                    new Token(TokenType.TEXT, "cyberpunk 2077", 79),
+                    new Token(TokenType.FILTER, "filter", 96),
+                    new Token(TokenType.TEXT, "discounted_price", 103),
+                    new Token(TokenType.COMPARISON, "<=", 122),
+                    new Token(TokenType.FLOATING, "60,1", 125),
+                    new Token(TokenType.MAX, "max", 130),
+                    new Token(TokenType.INTEGER, "300", 134),
+                    new Token(TokenType.EOF, "", 137),
+                },
+                Expected = new Wishlist()
+                {
+                    From = new From(new Text(Categories.GAMES)),
+                    Max = new Max(new Integer(300)),
+                    Wishes = new()
+                    {
+                        new Wish
+                        {
+                            Filters = new()
+                            {
+                                new(new Text(Properties.NAME), new Comparison(Comparisons.CONTAIN), new Text("south park")),
+                            },
+                        },
+                        new Wish
+                        {
+                            Filters = new()
+                            {
+                                new(new Text(Properties.NAME), new Comparison(Comparisons.CONTAIN), new Text("cyberpunk 2077")),
+                                new(new Text(Properties.DISCOUNTED_PRICE), new Comparison(Comparisons.LESS_OR_EQUAL), new Floating(60.1)),
+                            },
+                        },
+                    },
+                },
+            },
         };
 
         public class ParseValidTestCase

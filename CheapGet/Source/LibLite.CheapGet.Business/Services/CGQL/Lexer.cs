@@ -49,6 +49,9 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             if (lowerToken == Keywords.FILTER) return TokenType.FILTER;
             if (lowerToken == Keywords.SORT) return TokenType.SORT;
             if (lowerToken == Keywords.TAKE) return TokenType.TAKE;
+            if (lowerToken == Keywords.WISHLIST) return TokenType.WISHLIST;
+            if (lowerToken == Keywords.WISH) return TokenType.WISH;
+            if (lowerToken == Keywords.MAX) return TokenType.MAX;
             if (lowerToken == Keywords.LOAD) return TokenType.LOAD;
             if (lowerToken == Keywords.CLS) return TokenType.CLS;
             if (lowerToken == Keywords.EXIT) return TokenType.EXIT;

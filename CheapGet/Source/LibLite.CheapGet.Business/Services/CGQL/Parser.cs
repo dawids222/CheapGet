@@ -10,10 +10,11 @@ namespace LibLite.CheapGet.Business.Services.CGQL
     // TODO: Consolidate error messages
     public class Parser : IParser
     {
-        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.LOAD, TokenType.CLS, TokenType.EXIT };
+        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.WISHLIST, TokenType.LOAD, TokenType.CLS, TokenType.EXIT };
         public static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] NUMERIC_TOKEN_TYPES = new[] { TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] SELECT_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.EOF };
+        public static readonly TokenType[] WISHLIST_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.WISH, TokenType.MAX, TokenType.EOF };
 
         private IList<Token> _tokens;
 
@@ -36,6 +37,9 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 TokenType.TEXT => ParseText(token),
                 TokenType.INTEGER => ParseInteger(token),
                 TokenType.FLOATING => ParseFloating(token),
+                TokenType.WISHLIST => ParseWishlist(token),
+                TokenType.WISH => ParseWish(token),
+                TokenType.MAX => ParseMax(token),
                 TokenType.LOAD => ParseLoad(token),
                 TokenType.CLS => ParseCls(token),
                 TokenType.EXIT => ParseExit(token),
@@ -179,6 +183,50 @@ namespace LibLite.CheapGet.Business.Services.CGQL
         {
             var value = double.Parse(floating.Value);
             return new Floating(value);
+        }
+
+        private Wishlist ParseWishlist(Token _)
+        {
+            var result = new Wishlist();
+            while (true)
+            {
+                var token = Eat(WISHLIST_EXPECTED_TOKEN_TYPES);
+                if (token.Type == TokenType.EOF) { break; }
+
+                var expression = Parse(token);
+                if (token.Type == TokenType.FROM) { result.From = expression as From; }
+                if (token.Type == TokenType.MAX) { result.Max = expression as Max; }
+                if (token.Type == TokenType.WISH) { result.Wishes.Add(expression as Wish); }
+            }
+            return result;
+        }
+
+        private Wish ParseWish(Token _)
+        {
+            var result = new Wish();
+            var token = TryEatFilter();
+            while (token is not null)
+            {
+                var filter = ParseFilter(token);
+                result.Filters.Add(filter);
+                token = TryEatFilter();
+            }
+            return result;
+        }
+
+        private Token TryEatFilter()
+        {
+            Token token;
+            try { token = Eat(TokenType.FILTER); }
+            catch (Exception) { return null; }
+            return token;
+        }
+
+        private Max ParseMax(Token _)
+        {
+            var token = Eat(TokenType.INTEGER);
+            var value = ParseInteger(token);
+            return new Max(value);
         }
 
         private Load ParseLoad(Token _)

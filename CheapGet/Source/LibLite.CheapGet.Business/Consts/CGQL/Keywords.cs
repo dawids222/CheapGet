@@ -9,6 +9,9 @@
         public const string SORT = "sort";
         public const string ASC = "asc";
         public const string DESC = "desc";
+        public const string WISHLIST = "wishlist";
+        public const string WISH = "wish";
+        public const string MAX = "max";
         public const string LOAD = "load";
         public const string CLS = "cls";
         public const string EXIT = "exit";

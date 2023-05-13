@@ -14,6 +14,8 @@ namespace LibLite.CheapGet.Business.Services.Stores
         private readonly IEnumerable<IStoreClient> _stores;
         private readonly List<Product> _products = new();
 
+        public IEnumerable<IStoreClient> Stores => _stores;
+
         public StoreService(IEnumerable<IStoreClient> stores) => _stores = stores;
 
         public async Task<IEnumerable<Product>> GetDiscountedProductsAsync(GetProductsRequest request, CancellationToken token)
