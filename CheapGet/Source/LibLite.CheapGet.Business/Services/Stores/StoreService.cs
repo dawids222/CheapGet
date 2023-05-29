@@ -14,8 +14,6 @@ namespace LibLite.CheapGet.Business.Services.Stores
         private readonly IEnumerable<IStoreClient> _stores;
         private readonly List<Product> _products = new();
 
-        public IEnumerable<IStoreClient> Stores => _stores;
-
         public StoreService(IEnumerable<IStoreClient> stores) => _stores = stores;
 
         public async Task<IEnumerable<Product>> GetDiscountedProductsAsync(GetProductsRequest request, CancellationToken token)
@@ -63,6 +61,28 @@ namespace LibLite.CheapGet.Business.Services.Stores
                 .Aggregate(
                     products,
                     (current, filter) => filter.Apply(current))
+                .ToList();
+        }
+
+        public async Task<IEnumerable<Product>> GetWishlistProductsAsync(GetWishlistProductsRequest parameters, CancellationToken token)
+        {
+            if (!parameters.Filters.Any())
+            {
+                return Array.Empty<Product>();
+            }
+
+            var tasks = _stores
+                .Select(store => store.GetDiscountedProductsAsync(parameters.Count, token))
+                .ToList();
+
+            var results = await Task.WhenAll(tasks);
+            var products = results
+                .SelectMany(x => x)
+                .ToList();
+
+            var filter = parameters.Filters.Aggregate((current, next) => current.Or(next));
+            return filter
+                .Apply(products)
                 .ToList();
         }
     }

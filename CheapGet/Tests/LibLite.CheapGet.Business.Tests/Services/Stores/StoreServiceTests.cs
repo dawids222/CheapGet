@@ -1,4 +1,5 @@
-﻿using LibLite.CheapGet.Business.Services.Stores;
+﻿using LibLite.CheapGet.Business.Collections;
+using LibLite.CheapGet.Business.Services.Stores;
 using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Stores;
@@ -185,6 +186,46 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             _store2.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
         }
 
+        [Test]
+        public async Task GetWishlistProductsAsync_NoFiltersSpecified_ReturnsNoProducts()
+        {
+            var request = new GetWishlistProductsRequest
+            {
+                Count = 50,
+                Filters = new List<ICollectionFilter<Product>>(),
+            };
+
+            var result = await _service.GetWishlistProductsAsync(request, _token);
+
+            Assert.That(result.Count(), Is.EqualTo(0));
+            _store1.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Never);
+            _store2.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Never);
+        }
+
+        [Test]
+        public async Task GetWishlistProductsAsync_WithMultipleFilters_ReturnsWishlisterProducts()
+        {
+            var request = new GetWishlistProductsRequest
+            {
+                Count = 500,
+                Filters = new ICollectionFilter<Product>[]
+                {
+                    new CollectionStringFilter<Product>(x => x.Name, StringRelationalOperator.EQUAL, "name:10"),
+                    new CollectionStringFilter<Product>(x => x.Name, StringRelationalOperator.EQUAL, "name:20"),
+                },
+            };
+
+            var result = await _service.GetWishlistProductsAsync(request, _token);
+
+            Assert.That(result.Count(), Is.EqualTo(4));
+            Assert.That(
+                result.Select(x => x.Name).ToList(),
+                Is.EquivalentTo(
+                new[] { "name:10", "name:10", "name:20", "name:20" }));
+            _store1.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Once);
+            _store2.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Once);
+        }
+
         private static IEnumerable<int> GetRange(int first, int last, int step)
         {
             if (step == 0)
@@ -204,6 +245,9 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             mock
                 .Setup(x => x.GetDiscountedProductsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((int start, int count, CancellationToken token) => products.Skip(start).Take(count).ToList());
+            mock
+                .Setup(x => x.GetDiscountedProductsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((int count, CancellationToken token) => products.Take(count).ToList());
             return mock;
         }
 

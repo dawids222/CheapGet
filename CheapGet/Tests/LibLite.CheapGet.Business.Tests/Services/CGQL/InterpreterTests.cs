@@ -93,6 +93,33 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
         }
 
         [Test]
+        public async Task InterpretAsync_Wishlist_PresentsReportWithDefaultParameters()
+        {
+            var input = @"wishlist";
+            var products = new Product[]
+            {
+                new SteamProduct(default, default, default, default, default),
+            };
+            var report = new Report();
+            _gameStoreServiceMock
+                .Setup(x => x.GetWishlistProductsAsync(
+                    It.Is<GetWishlistProductsRequest>(x =>
+                        x.Count == Wishlist.DEFAULT_MAX &&
+                        !x.Filters.Any()),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(products);
+            _reportGeneratorMock
+                .Setup(x => x.GenerateAsync(products))
+                .ReturnsAsync(report);
+
+            var tokens = _lexer.Lex(input);
+            var expression = _parser.Parse(tokens);
+            await _interpreter.InterpretAsync(expression);
+
+            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+        }
+
+        [Test]
         public async Task InterpretAsync_Load_ExecutesCommandReadFromFileService()
         {
             var input = "load \"query.cgql\"";
@@ -157,6 +184,42 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                         x.Sorts.ElementAt(0).SortDirection == Core.Enums.SortDirection.ASC &&
                         x.Sorts.ElementAt(1) is CollectionSort<Product, double> &&
                         x.Sorts.ElementAt(1).SortDirection == Core.Enums.SortDirection.DESC),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(products);
+            _reportGeneratorMock
+                .Setup(x => x.GenerateAsync(products))
+                .ReturnsAsync(report);
+
+            var tokens = _lexer.Lex(input);
+            var expression = _parser.Parse(tokens);
+            await _interpreter.InterpretAsync(expression);
+
+            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+        }
+
+        [Test]
+        public async Task InterpretAsync_ComplexWishlist_PresentsReportWithParameters()
+        {
+            var input = @"wishlist
+                          from ""Games""
+                          wish 
+                               filter ""name"" <> ""south park""
+                               filter ""store_name"" <> ""steam""
+                          wish 
+                               filter ""name"" <> ""cyberpunk 2077""
+                               filter ""discounted_price"" <= 60.1
+                               filter ""store_name"" <> ""steam""
+                          max 200";
+            var products = new Product[]
+            {
+                new SteamProduct(default, default, default, default, default),
+            };
+            var report = new Report();
+            _gameStoreServiceMock
+                .Setup(x => x.GetWishlistProductsAsync(
+                    It.Is<GetWishlistProductsRequest>(x =>
+                        x.Count == 200 &&
+                        x.Filters.Count() == 2),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(products);
             _reportGeneratorMock

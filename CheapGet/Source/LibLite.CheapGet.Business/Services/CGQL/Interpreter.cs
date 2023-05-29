@@ -171,21 +171,15 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             await _reportPresenter.PresentAsync(report);
         }
 
-        private async Task<IEnumerable<Product>> GetProductsAsync(Wishlist wishlist)
+        private Task<IEnumerable<Product>> GetProductsAsync(Wishlist wishlist)
         {
             var count = wishlist.Max.Value.Value;
             var filters = InterpretWish(wishlist.Wishes);
             var from = wishlist.From.Text.Value;
 
-            var storeService = _storeServices[from];
-            var tasks = storeService.Stores
-                .Select(x => x.GetDiscountedProductsAsync(count, CancellationToken.None))
-                .ToList();
-            var results = await Task.WhenAll(tasks);
-            var products = results.SelectMany(x => x).ToList();
-            var filter = filters.Aggregate((current, next) => current.Or(next));
-            var result = filter.Apply(products).ToList();
-            return result;
+            var service = _storeServices[from];
+            var parameters = new GetWishlistProductsRequest(count, filters);
+            return service.GetWishlistProductsAsync(parameters, CancellationToken.None);
         }
 
         private static IEnumerable<ICollectionFilter<Product>> InterpretWish(IEnumerable<Wish> wishes)

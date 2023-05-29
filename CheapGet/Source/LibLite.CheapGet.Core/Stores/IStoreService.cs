@@ -4,7 +4,7 @@ namespace LibLite.CheapGet.Core.Stores
 {
     public interface IStoreService
     {
-        IEnumerable<IStoreClient> Stores { get; }
         Task<IEnumerable<Product>> GetDiscountedProductsAsync(GetProductsRequest parameters, CancellationToken token);
+        Task<IEnumerable<Product>> GetWishlistProductsAsync(GetWishlistProductsRequest parameters, CancellationToken token);
     }
 }
