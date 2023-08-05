@@ -80,28 +80,30 @@ namespace LibLite.CheapGet.DAL.Clients.Games
             {
                 var searchCapsuleNode = productRow.GetFirstChildWithClass("search_capsule");
                 var nameCombinedNode = productRow.GetFirstChildWithClass("responsive_search_name_combined");
-                var discountCombinedNode = nameCombinedNode.GetFirstChildWithClass("search_price_discount_combined");
-                var priceNode = discountCombinedNode.GetFirstChildWithClass("search_price");
+                var discountNode = nameCombinedNode
+                    .GetFirstChildWithClass("search_price_discount_combined")
+                    .GetFirstChildWithClass("search_discount_and_price")
+                    .GetFirstChildWithClass("search_discount_block");
 
                 var name = nameCombinedNode
                     ?.GetFirstChildWithClass("search_name")
                     ?.GetFirstChildWithClass("title")
                     ?.GetValue<string>();
 
-                var basePrice = priceNode
-                    ?.GetFirstChildWithName("span")
-                    ?.GetFirstChildWithName("strike")
-                    ?.GetValue<double>() ?? 0;
+                var discountedPrice = discountNode
+                    .GetAttributeValue<double>("data-price-final", 0) / 100;
 
-                var discountedPrice = priceNode
-                    ?.GetLastChildWithName("#text")
-                    ?.GetValue<double>() ?? 0;
+                var discountPercentage = discountNode
+                    .GetAttributeValue<double>("data-discount", 0);
+                var discountRate = 1 - (discountPercentage / 100);
+                var basePrice = discountedPrice / discountRate;
 
                 var imgUrl = searchCapsuleNode
                     ?.GetFirstChildWithName("img")
                     ?.GetAttributeValue("src", "");
 
-                var url = productRow.GetAttributeValue("href", "#");
+                var url = productRow
+                    .GetAttributeValue("href", "#");
 
                 yield return new SteamProduct(name, basePrice, discountedPrice, imgUrl, url);
             }

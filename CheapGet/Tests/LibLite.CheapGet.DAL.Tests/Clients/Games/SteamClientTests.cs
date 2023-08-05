@@ -24,11 +24,11 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             var resultsHtml = File.ReadAllText("Resources\\SteamGetDiscountedProductsStart0Count100Html.txt");
             var url = $"https://store.steampowered.com/search/results/?query&start=0&count=1&dynamic_data=&sort_by=_ASC&specials=1&infinite=1";
             var expected = new SteamProduct(
-                name: "Red Dead Redemption 2",
-                basePrice: 249.9,
-                discountedPrice: 124.95,
-                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907",
-                url: "https://store.steampowered.com/app/1174180/Red_Dead_Redemption_2/?snr=1_7_7_2300_150_1");
+                name: "Euro Truck Simulator 2",
+                basePrice: 79.96,
+                discountedPrice: 19.99,
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/227300/capsule_sm_120.jpg?t=1689679069",
+                url: "https://store.steampowered.com/app/227300/Euro_Truck_Simulator_2/?snr=1_7_7_2300_150_1");
             var response = new SteamGetDiscountedProductsResponse
             {
                 success = 1,
@@ -53,17 +53,17 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             var resultsHtml = File.ReadAllText("Resources\\SteamGetDiscountedProductsStart0Count100Html.txt");
             var url = $"https://store.steampowered.com/search/results/?query&start=0&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1";
             var expected0 = new SteamProduct(
-                name: "Red Dead Redemption 2",
-                basePrice: 249.9,
-                discountedPrice: 124.95,
-                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/1174180/capsule_sm_120.jpg?t=1618851907",
-                url: "https://store.steampowered.com/app/1174180/Red_Dead_Redemption_2/?snr=1_7_7_2300_150_1");
+                name: "Euro Truck Simulator 2",
+                basePrice: 79.96,
+                discountedPrice: 19.99,
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/227300/capsule_sm_120.jpg?t=1689679069",
+                url: "https://store.steampowered.com/app/227300/Euro_Truck_Simulator_2/?snr=1_7_7_2300_150_1");
             var expected99 = new SteamProduct(
-                name: "Forts - High Seas Bundle",
-                basePrice: 89.98,
-                discountedPrice: 56.68,
-                imgUrl: "https://cdn.akamai.steamstatic.com/steam/bundles/25294/46rchgr1oc1lro1n/capsule_sm_120.jpg?t=1647870827",
-                url: "https://store.steampowered.com/bundle/25294/Forts__High_Seas_Bundle/?snr=1_7_7_2300_150_1");
+                name: "We Were Here Together",
+                basePrice: 26.99 / (1 - 0.55),
+                discountedPrice: 26.99,
+                imgUrl: "https://cdn.akamai.steamstatic.com/steam/apps/865360/capsule_sm_120.jpg?t=1683923907",
+                url: "https://store.steampowered.com/app/865360/We_Were_Here_Together/?snr=1_7_7_2300_150_1");
             var response = new SteamGetDiscountedProductsResponse
             {
                 success = 1,

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace LibLite.CheapGet.DAL.Extensions
 {
-    public static class HtmlNodeExtensions
+    internal static class HtmlNodeExtensions
     {
         public static HtmlNode GetFirstChildWithClass(this HtmlNode node, string @class)
         {
