@@ -1,7 +1,8 @@
 ﻿using LibLite.CheapGet.Core.Stores.Games.Steam;
 using LibLite.CheapGet.DAL.Clients.Games;
 using LibLite.CheapGet.DAL.Clients.Games.Steam.Responses;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using System;
 using System.IO;
@@ -15,7 +16,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
     {
         protected override SteamClient CreateClient()
         {
-            return new(_httpClientMock.Object);
+            return new(_httpClientMock);
         }
 
         [Test]
@@ -37,8 +38,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 total_count = 1,
             };
             _httpClientMock
-                .Setup(x => x.GetAsync<SteamGetDiscountedProductsResponse>(url, _token))
-                .ReturnsAsync(response);
+                .GetAsync<SteamGetDiscountedProductsResponse>(url, _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(0, 1, _token);
 
@@ -72,8 +73,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 total_count = 1,
             };
             _httpClientMock
-                .Setup(x => x.GetAsync<SteamGetDiscountedProductsResponse>(url, _token))
-                .ReturnsAsync(response);
+                .GetAsync<SteamGetDiscountedProductsResponse>(url, _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(0, 100, _token);
 
@@ -97,12 +98,12 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 total_count = 1,
             };
             _httpClientMock
-                .Setup(x => x.GetAsync<SteamGetDiscountedProductsResponse>(It.IsAny<string>(), _token))
-                .ReturnsAsync(response);
+                .GetAsync<SteamGetDiscountedProductsResponse>(Arg.Any<string>(), _token)
+                .Returns(response);
 
-            var result = await _client.GetDiscountedProductsAsync(25, 50, _token);
+            await _client.GetDiscountedProductsAsync(25, 50, _token);
 
-            _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=25&count=50&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
+            await _httpClientMock.Received(1).GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=25&count=50&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token);
         }
 
         [Test]
@@ -117,22 +118,22 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 total_count = 1,
             };
             _httpClientMock
-                .Setup(x => x.GetAsync<SteamGetDiscountedProductsResponse>(It.IsAny<string>(), _token))
-                .ReturnsAsync(response);
+                .GetAsync<SteamGetDiscountedProductsResponse>(Arg.Any<string>(), _token)
+                .Returns(response);
 
-            var result = await _client.GetDiscountedProductsAsync(25, 250, _token);
+            await _client.GetDiscountedProductsAsync(25, 250, _token);
 
-            _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=25&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
-            _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=125&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
-            _httpClientMock.Verify(x => x.GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=225&count=50&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token), Times.Once);
+            await _httpClientMock.Received(1).GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=25&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token);
+            await _httpClientMock.Received(1).GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=125&count=100&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token);
+            await _httpClientMock.Received(1).GetAsync<SteamGetDiscountedProductsResponse>("https://store.steampowered.com/search/results/?query&start=225&count=50&dynamic_data=&sort_by=_ASC&specials=1&infinite=1", _token);
         }
 
         [Test]
         public void GetDiscountedProductsAsync_HttpClientThrows_ThrowsTheSameException()
         {
             _httpClientMock
-                .Setup(x => x.GetAsync<SteamGetDiscountedProductsResponse>(It.IsAny<string>(), _token))
-                .ThrowsAsync(_exception);
+                .GetAsync<SteamGetDiscountedProductsResponse>(Arg.Any<string>(), _token)
+                .Throws(_exception);
 
             Task act() => _client.GetDiscountedProductsAsync(0, 1, _token);
 

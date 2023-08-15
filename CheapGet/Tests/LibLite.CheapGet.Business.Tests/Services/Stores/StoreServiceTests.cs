@@ -4,7 +4,7 @@ using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Enums;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Models;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -19,8 +19,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
     {
         private CancellationToken _token;
 
-        private Mock<IStoreClient> _store1;
-        private Mock<IStoreClient> _store2;
+        private IStoreClient _store1Mock;
+        private IStoreClient _store2Mock;
 
         private IEnumerable<Product> _products1;
         private IEnumerable<Product> _products2;
@@ -35,12 +35,12 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             _products1 = CreateMockProducts(500);
             _products2 = CreateMockProducts(500);
 
-            _store1 = CreateStoreClientMock(_products1);
-            _store2 = CreateStoreClientMock(_products2);
+            _store1Mock = CreateStoreClientMock(_products1);
+            _store2Mock = CreateStoreClientMock(_products2);
             var stores = new[]
             {
-                _store1.Object,
-                _store2.Object,
+                _store1Mock,
+                _store2Mock,
             };
 
             _service = new(stores);
@@ -58,8 +58,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             var result = await _service.GetDiscountedProductsAsync(request, _token);
 
             CollectionAssert.AreEqual(expected, result);
-            _store1.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
-            _store2.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
+            await _store1Mock.Received(1).GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token);
+            await _store2Mock.Received(1).GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token);
         }
 
         [Test]
@@ -81,8 +81,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             var result = await _service.GetDiscountedProductsAsync(request, _token);
 
             CollectionAssert.AreEqual(expected, result);
-            _store1.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
-            _store2.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
+            await _store1Mock.Received(1).GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token);
+            await _store2Mock.Received(1).GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token);
         }
 
         [Test]
@@ -112,8 +112,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             CollectionAssert.AreEqual(expected, result);
             foreach (var number in GetRange(0, 200, 100))
             {
-                _store1.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
-                _store2.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
+                await _store1Mock.Received(1).GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token);
+                await _store2Mock.Received(1).GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token);
             }
         }
 
@@ -141,8 +141,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             Assert.AreEqual(50, result.Count());
             foreach (var number in GetRange(0, 900, 100))
             {
-                _store1.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
-                _store2.Verify(x => x.GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token), Times.Once);
+                await _store1Mock.Received(1).GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token);
+                await _store2Mock.Received(1).GetDiscountedProductsAsync(number, StoreService.MIN_FETCH, _token);
             }
         }
 
@@ -182,8 +182,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             await _service.GetDiscountedProductsAsync(request, _token);
             await _service.GetDiscountedProductsAsync(request, _token);
 
-            _store1.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
-            _store2.Verify(x => x.GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token), Times.Once);
+            await _store1Mock.Received(1).GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token);
+            await _store2Mock.Received(1).GetDiscountedProductsAsync(0, StoreService.MIN_FETCH, _token);
         }
 
         [Test]
@@ -198,8 +198,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
             var result = await _service.GetWishlistProductsAsync(request, _token);
 
             Assert.That(result.Count(), Is.EqualTo(0));
-            _store1.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Never);
-            _store2.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Never);
+            await _store1Mock.DidNotReceive().GetDiscountedProductsAsync(request.Count, _token);
+            await _store2Mock.DidNotReceive().GetDiscountedProductsAsync(request.Count, _token);
         }
 
         [Test]
@@ -222,8 +222,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
                 result.Select(x => x.Name).ToList(),
                 Is.EquivalentTo(
                 new[] { "name:10", "name:10", "name:20", "name:20" }));
-            _store1.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Once);
-            _store2.Verify(x => x.GetDiscountedProductsAsync(request.Count, _token), Times.Once);
+            await _store1Mock.Received(1).GetDiscountedProductsAsync(request.Count, _token);
+            await _store2Mock.Received(1).GetDiscountedProductsAsync(request.Count, _token);
         }
 
         private static IEnumerable<int> GetRange(int first, int last, int step)
@@ -239,15 +239,15 @@ namespace LibLite.CheapGet.Business.Tests.Services.Stores
                 .ToList();
         }
 
-        private static Mock<IStoreClient> CreateStoreClientMock(IEnumerable<Product> products)
+        private static IStoreClient CreateStoreClientMock(IEnumerable<Product> products)
         {
-            var mock = new Mock<IStoreClient>();
+            var mock = Substitute.For<IStoreClient>();
             mock
-                .Setup(x => x.GetDiscountedProductsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((int start, int count, CancellationToken token) => products.Skip(start).Take(count).ToList());
+                .GetDiscountedProductsAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .Returns(args => products.Skip((int)args[0]).Take((int)args[1]).ToList());
             mock
-                .Setup(x => x.GetDiscountedProductsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((int count, CancellationToken token) => products.Take(count).ToList());
+                .GetDiscountedProductsAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .Returns(args => products.Take((int)args[0]).ToList());
             return mock;
         }
 

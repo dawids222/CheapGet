@@ -1,7 +1,8 @@
 ﻿using LibLite.CheapGet.Core.Extensions;
 using LibLite.CheapGet.Core.Stores.Games.PlayStationStore;
 using LibLite.CheapGet.DAL.Clients.Games.PlayStationStore;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
 
         protected override PlayStationStoreClient CreateClient()
         {
-            return new(_httpClientMock.Object);
+            return new(_httpClientMock);
         }
 
         public override void SetUp()
@@ -35,8 +36,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             _headers = new() { { "x-psn-store-locale-override", "pl-PL" } };
 
             _httpClientMock
-                .Setup(x => x.GetStringAsync("https://store.playstation.com/pl-pl/pages/deals", _token))
-                .ReturnsAsync(_authTokenResponse);
+               .GetStringAsync("https://store.playstation.com/pl-pl/pages/deals", _token)
+               .Returns(_authTokenResponse);
         }
 
         [Test]
@@ -46,8 +47,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             var expected = GetExpectedProducts(response);
             var url = "https://web.np.playstation.com/api/graphql/v1//op?operationName=categoryGridRetrieve&variables={\"id\":\"" + _authToken + "\",\"pageArgs\":{\"size\":100,\"offset\":0},\"sortBy\":{\"name\":\"sales30\",\"isAscending\":false},\"filterBy\":[],\"facetOptions\":[]}&extensions={\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"4ce7d410a4db2c8b635a48c1dcec375906ff63b19dadd87e073f8fd0c0481d35\"}}";
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(url, _headers, _token))
-                .ReturnsAsync(response);
+                .GetAsync<Response>(url, Headers(), _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(0, 1, _token);
 
@@ -61,8 +62,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             var expected = GetExpectedProducts(response);
             var url = "https://web.np.playstation.com/api/graphql/v1//op?operationName=categoryGridRetrieve&variables={\"id\":\"" + _authToken + "\",\"pageArgs\":{\"size\":100,\"offset\":0},\"sortBy\":{\"name\":\"sales30\",\"isAscending\":false},\"filterBy\":[],\"facetOptions\":[]}&extensions={\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"4ce7d410a4db2c8b635a48c1dcec375906ff63b19dadd87e073f8fd0c0481d35\"}}";
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(url, _headers, _token))
-                .ReturnsAsync(response);
+                .GetAsync<Response>(url, Headers(), _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(0, 100, _token);
 
@@ -76,8 +77,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
             var expected = GetExpectedProducts(response, 25, 50);
             var url = "https://web.np.playstation.com/api/graphql/v1//op?operationName=categoryGridRetrieve&variables={\"id\":\"" + _authToken + "\",\"pageArgs\":{\"size\":100,\"offset\":0},\"sortBy\":{\"name\":\"sales30\",\"isAscending\":false},\"filterBy\":[],\"facetOptions\":[]}&extensions={\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"4ce7d410a4db2c8b635a48c1dcec375906ff63b19dadd87e073f8fd0c0481d35\"}}";
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(url, _headers, _token))
-                .ReturnsAsync(response);
+                .GetAsync<Response>(url, Headers(), _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(25, 50, _token);
 
@@ -96,8 +97,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                     expected.AddRange(GetExpectedProducts(response));
                     var url = "https://web.np.playstation.com/api/graphql/v1//op?operationName=categoryGridRetrieve&variables={\"id\":\"" + _authToken + "\",\"pageArgs\":{\"size\":100,\"offset\":" + 100 * x + "},\"sortBy\":{\"name\":\"sales30\",\"isAscending\":false},\"filterBy\":[],\"facetOptions\":[]}&extensions={\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"4ce7d410a4db2c8b635a48c1dcec375906ff63b19dadd87e073f8fd0c0481d35\"}}";
                     _httpClientMock
-                        .Setup(x => x.GetAsync<Response>(url, _headers, _token))
-                        .ReturnsAsync(response);
+                        .GetAsync<Response>(url, Headers(), _token)
+                        .Returns(response);
                 });
             expected = expected.Skip(25).Take(250).ToList();
 
@@ -110,8 +111,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         public void GetDiscountedProductsAsync_GetProducts_HttpClientThrows_ThrowsTheSameException()
         {
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), _token))
-                .ThrowsAsync(_exception);
+                .GetAsync<Response>(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>(), _token)
+                .Throws(_exception);
 
             Task act() => _client.GetDiscountedProductsAsync(0, 1, _token);
 
@@ -122,8 +123,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         public void GetDiscountedProductsAsync_GetAuthToken_HttpClientThrows_ThrowsTheSameException()
         {
             _httpClientMock
-                .Setup(x => x.GetStringAsync(It.IsAny<string>(), _token))
-                .ThrowsAsync(_exception);
+                .GetStringAsync(Arg.Any<string>(), _token)
+                .Throws(_exception);
 
             Task act() => _client.GetDiscountedProductsAsync(0, 1, _token);
 
@@ -135,8 +136,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         public void GetDiscountedProductsAsync_GetAuthToken_TokenNotFound_ThrowsException(string response)
         {
             _httpClientMock
-                .Setup(x => x.GetStringAsync(It.IsAny<string>(), _token))
-                .ReturnsAsync(response);
+                .GetStringAsync(Arg.Any<string>(), _token)
+                .Returns(response);
 
             Task act() => _client.GetDiscountedProductsAsync(0, 1, _token);
 
@@ -218,6 +219,13 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 double.Parse(product.Price.DiscountedPrice),
                 product.Media.FirstOrDefault(x => x.Role == "MASTER")?.Url,
                 $"https://store.playstation.com/pl-pl/product/{product.Id}");
+        }
+
+        private Dictionary<string, string> Headers()
+        {
+            return Arg.Is<Dictionary<string, string>>(target =>
+                _headers.Count == target.Count &&
+                _headers.Keys.All(key => _headers[key] == target[key]));
         }
     }
 }

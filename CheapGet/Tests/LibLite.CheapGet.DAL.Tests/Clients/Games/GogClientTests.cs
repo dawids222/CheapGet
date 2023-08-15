@@ -1,7 +1,8 @@
 ﻿using LibLite.CheapGet.Core.Extensions;
 using LibLite.CheapGet.Core.Stores.Games.GoG;
 using LibLite.CheapGet.DAL.Clients.Games.GoG;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
     {
         protected override GogClient CreateClient()
         {
-            return new(_httpClientMock.Object);
+            return new(_httpClientMock);
         }
 
         [Test]
@@ -35,8 +36,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 .ToList();
             var url = $"https://catalog.gog.com/v1/catalog?limit=100&order=desc%3Atrending&discounted=eq%3Atrue&productType=in%3Agame%2Cpack&page=1&countryCode=PL&locale=pl-PL&currencyCode=PLN";
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(url, _token))
-                .ReturnsAsync(response);
+                .GetAsync<Response>(url, _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(0, 1, _token);
 
@@ -56,8 +57,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 .ToList();
             var url = $"https://catalog.gog.com/v1/catalog?limit=100&order=desc%3Atrending&discounted=eq%3Atrue&productType=in%3Agame%2Cpack&page=1&countryCode=PL&locale=pl-PL&currencyCode=PLN";
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(url, _token))
-                .ReturnsAsync(response);
+                .GetAsync<Response>(url, _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(0, 100, _token);
 
@@ -79,8 +80,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                 .ToList();
             var url = $"https://catalog.gog.com/v1/catalog?limit=100&order=desc%3Atrending&discounted=eq%3Atrue&productType=in%3Agame%2Cpack&page=1&countryCode=PL&locale=pl-PL&currencyCode=PLN";
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(url, _token))
-                .ReturnsAsync(response);
+                .GetAsync<Response>(url, _token)
+                .Returns(response);
 
             var result = await _client.GetDiscountedProductsAsync(25, 50, _token);
 
@@ -105,8 +106,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
                         .ToList());
                     var url = $"https://catalog.gog.com/v1/catalog?limit=100&order=desc%3Atrending&discounted=eq%3Atrue&productType=in%3Agame%2Cpack&page={x}&countryCode=PL&locale=pl-PL&currencyCode=PLN";
                     _httpClientMock
-                        .Setup(x => x.GetAsync<Response>(url, _token))
-                        .ReturnsAsync(response);
+                        .GetAsync<Response>(url, _token)
+                        .Returns(response);
                 });
             expected = expected.Skip(25).Take(250).ToList();
 
@@ -119,8 +120,8 @@ namespace LibLite.CheapGet.DAL.Tests.Clients.Games
         public void GetDiscountedProductsAsync_HttpClientThrows_ThrowsTheSameException()
         {
             _httpClientMock
-                .Setup(x => x.GetAsync<Response>(It.IsAny<string>(), _token))
-                .ThrowsAsync(_exception);
+                .GetAsync<Response>(Arg.Any<string>(), _token)
+                .Throws(_exception);
 
             Task act() => _client.GetDiscountedProductsAsync(0, 1, _token);
 

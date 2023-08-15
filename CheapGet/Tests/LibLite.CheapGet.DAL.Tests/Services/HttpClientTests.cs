@@ -1,5 +1,6 @@
 ﻿using LibLite.CheapGet.Core.Services;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 using System;
@@ -20,8 +21,8 @@ namespace LibLite.CheapGet.DAL.Tests.Services
         private CancellationToken _token;
 
         private MockHttpMessageHandler _httpMessageHandlerMock;
-        private System.Net.Http.HttpClient _httpClient;
-        private Mock<ISerializer> _serializerMock;
+        private HttpClient _httpClient;
+        private ISerializer _serializerMock;
 
         private DAL.Services.HttpClient _client;
 
@@ -31,10 +32,10 @@ namespace LibLite.CheapGet.DAL.Tests.Services
             _token = new();
 
             _httpMessageHandlerMock = new();
-            _httpClient = new System.Net.Http.HttpClient(_httpMessageHandlerMock);
-            _serializerMock = new();
+            _httpClient = new HttpClient(_httpMessageHandlerMock);
+            _serializerMock = Substitute.For<ISerializer>();
 
-            _client = new(_httpClient, _serializerMock.Object);
+            _client = new(_httpClient, _serializerMock);
         }
 
         [TearDown]
@@ -53,7 +54,7 @@ namespace LibLite.CheapGet.DAL.Tests.Services
             };
             var response = $"{{\"Text\": \"{expected.Text}\", \"Number\": {expected.Number}}}";
             _serializerMock
-                .Setup(x => x.Deserialize<Response>(response))
+                .Deserialize<Response>(response)
                 .Returns(expected);
             _httpMessageHandlerMock
                 .When(HttpMethod.Get, URL)
@@ -74,7 +75,7 @@ namespace LibLite.CheapGet.DAL.Tests.Services
             };
             var response = $"{{\"Text\": \"{expected.Text}\", \"Number\": {expected.Number}}}";
             _serializerMock
-                .Setup(x => x.Deserialize<Response>(response))
+                .Deserialize<Response>(response)
                 .Returns(expected);
             _httpMessageHandlerMock
                 .When(HttpMethod.Get, URL)
@@ -117,7 +118,7 @@ namespace LibLite.CheapGet.DAL.Tests.Services
         {
             var exception = new Exception("Error!");
             _serializerMock
-                .Setup(x => x.Deserialize<Response>(It.IsAny<string>()))
+                .Deserialize<Response>(Arg.Any<string>())
                 .Throws(exception);
             _httpMessageHandlerMock
                 .When(HttpMethod.Get, URL)
@@ -133,7 +134,7 @@ namespace LibLite.CheapGet.DAL.Tests.Services
         {
             var exception = new Exception("Error!");
             _serializerMock
-                .Setup(x => x.Deserialize<Response>(It.IsAny<string>()))
+                .Deserialize<Response>(Arg.Any<string>())
                 .Throws(exception);
             _httpMessageHandlerMock
                 .When(HttpMethod.Get, URL)

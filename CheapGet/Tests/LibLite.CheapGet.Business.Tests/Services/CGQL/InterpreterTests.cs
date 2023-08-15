@@ -11,7 +11,7 @@ using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.Steam;
 using LibLite.CheapGet.Core.Stores.Models;
 using LibLite.DI.Lite;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -26,11 +26,11 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
         private readonly DI.Lite.Container _container;
         private readonly DependencyProvider _scope;
 
-        private readonly Mock<IStoreService> _gameStoreServiceMock;
-        private readonly Mock<IFileService> _fieServiceMock;
-        private readonly Mock<IReportGenerator> _reportGeneratorMock;
-        private readonly Mock<IReportPresenter> _reportPresenterMock;
-        private readonly Mock<IEnvironmentService> _environmentServiceMock;
+        private readonly IStoreService _gameStoreServiceMock;
+        private readonly IFileService _fieServiceMock;
+        private readonly IReportGenerator _reportGeneratorMock;
+        private readonly IReportPresenter _reportPresenterMock;
+        private readonly IEnvironmentService _environmentServiceMock;
 
         private ILexer _lexer => _scope.Get<ILexer>();
         private IParser _parser => _scope.Get<IParser>();
@@ -42,24 +42,24 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             _container.RegisterDependencies();
 
             _container.Remove<IStoreService>(Tags.StoreServices.Games);
-            _gameStoreServiceMock = new Mock<IStoreService>();
-            _container.Scoped(Tags.StoreServices.Games, _ => _gameStoreServiceMock.Object);
+            _gameStoreServiceMock = Substitute.For<IStoreService>();
+            _container.Scoped(Tags.StoreServices.Games, _ => _gameStoreServiceMock);
 
             _container.Remove<IFileService>();
-            _fieServiceMock = new Mock<IFileService>();
-            _container.Scoped(_ => _fieServiceMock.Object);
+            _fieServiceMock = Substitute.For<IFileService>();
+            _container.Scoped(_ => _fieServiceMock);
 
             _container.Remove<IReportGenerator>();
-            _reportGeneratorMock = new Mock<IReportGenerator>();
-            _container.Scoped(_ => _reportGeneratorMock.Object);
+            _reportGeneratorMock = Substitute.For<IReportGenerator>();
+            _container.Scoped(_ => _reportGeneratorMock);
 
             _container.Remove<IReportPresenter>();
-            _reportPresenterMock = new Mock<IReportPresenter>();
-            _container.Scoped(_ => _reportPresenterMock.Object);
+            _reportPresenterMock = Substitute.For<IReportPresenter>();
+            _container.Scoped(_ => _reportPresenterMock);
 
             _container.Remove<IEnvironmentService>();
-            _environmentServiceMock = new Mock<IEnvironmentService>();
-            _container.Scoped(_ => _environmentServiceMock.Object);
+            _environmentServiceMock = Substitute.For<IEnvironmentService>();
+            _container.Scoped(_ => _environmentServiceMock);
 
             _scope = _container.CreateScope();
         }
@@ -74,22 +74,22 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             };
             var report = new Report();
             _gameStoreServiceMock
-                .Setup(x => x.GetDiscountedProductsAsync(
-                    It.Is<GetProductsRequest>(x =>
+                .GetDiscountedProductsAsync(
+                    Arg.Is<GetProductsRequest>(x =>
                         x.Count == Select.DEFAULT_TAKE &&
                         !x.Sorts.Any() &&
                         !x.Filters.Any()),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(products);
+                    Arg.Any<CancellationToken>())
+                .Returns(products);
             _reportGeneratorMock
-                .Setup(x => x.GenerateAsync(products))
-                .ReturnsAsync(report);
+                .GenerateAsync(products)
+                .Returns(report);
 
             var tokens = _lexer.Lex(input);
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+            await _reportPresenterMock.Received(1).PresentAsync(report);
         }
 
         [Test]
@@ -102,21 +102,21 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             };
             var report = new Report();
             _gameStoreServiceMock
-                .Setup(x => x.GetWishlistProductsAsync(
-                    It.Is<GetWishlistProductsRequest>(x =>
+                .GetWishlistProductsAsync(
+                    Arg.Is<GetWishlistProductsRequest>(x =>
                         x.Count == Wishlist.DEFAULT_MAX &&
                         !x.Filters.Any()),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(products);
+                    Arg.Any<CancellationToken>())
+                .Returns(products);
             _reportGeneratorMock
-                .Setup(x => x.GenerateAsync(products))
-                .ReturnsAsync(report);
+                .GenerateAsync(products)
+                .Returns(report);
 
             var tokens = _lexer.Lex(input);
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+            await _reportPresenterMock.Received(1).PresentAsync(report);
         }
 
         [Test]
@@ -129,25 +129,25 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             };
             var report = new Report();
             _fieServiceMock
-                .Setup(x => x.ReadAsync("query.cgql"))
-                .ReturnsAsync("select");
+                .ReadAsync("query.cgql")
+                .Returns("select");
             _gameStoreServiceMock
-                .Setup(x => x.GetDiscountedProductsAsync(
-                    It.Is<GetProductsRequest>(x =>
+                .GetDiscountedProductsAsync(
+                    Arg.Is<GetProductsRequest>(x =>
                         x.Count == Select.DEFAULT_TAKE &&
                         !x.Sorts.Any() &&
                         !x.Filters.Any()),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(products);
+                    Arg.Any<CancellationToken>())
+                .Returns(products);
             _reportGeneratorMock
-                .Setup(x => x.GenerateAsync(products))
-                .ReturnsAsync(report);
+                .GenerateAsync(products)
+                .Returns(report);
 
             var tokens = _lexer.Lex(input);
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+            await _reportPresenterMock.Received(1).PresentAsync(report);
         }
 
         [Test]
@@ -166,8 +166,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             };
             var report = new Report();
             _gameStoreServiceMock
-                .Setup(x => x.GetDiscountedProductsAsync(
-                    It.Is<GetProductsRequest>(x =>
+                .GetDiscountedProductsAsync(
+                    Arg.Is<GetProductsRequest>(x =>
                         x.Count == 200 &&
                         x.Filters.Count() == 3 &&
                         x.Filters.ElementAt(0) is CollectionStringFilter<Product> &&
@@ -184,17 +184,17 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                         x.Sorts.ElementAt(0).SortDirection == Core.Enums.SortDirection.ASC &&
                         x.Sorts.ElementAt(1) is CollectionSort<Product, double> &&
                         x.Sorts.ElementAt(1).SortDirection == Core.Enums.SortDirection.DESC),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(products);
+                    Arg.Any<CancellationToken>())
+                .Returns(products);
             _reportGeneratorMock
-                .Setup(x => x.GenerateAsync(products))
-                .ReturnsAsync(report);
+                .GenerateAsync(products)
+                .Returns(report);
 
             var tokens = _lexer.Lex(input);
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+            await _reportPresenterMock.Received(1).PresentAsync(report);
         }
 
         [Test]
@@ -216,21 +216,21 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             };
             var report = new Report();
             _gameStoreServiceMock
-                .Setup(x => x.GetWishlistProductsAsync(
-                    It.Is<GetWishlistProductsRequest>(x =>
+                .GetWishlistProductsAsync(
+                    Arg.Is<GetWishlistProductsRequest>(x =>
                         x.Count == 200 &&
                         x.Filters.Count() == 2),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(products);
+                    Arg.Any<CancellationToken>())
+                .Returns(products);
             _reportGeneratorMock
-                .Setup(x => x.GenerateAsync(products))
-                .ReturnsAsync(report);
+                .GenerateAsync(products)
+                .Returns(report);
 
             var tokens = _lexer.Lex(input);
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _reportPresenterMock.Verify(x => x.PresentAsync(report), Times.Once);
+            await _reportPresenterMock.Received(1).PresentAsync(report);
         }
 
         [Test]
@@ -242,7 +242,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _environmentServiceMock.Verify(x => x.ClearInputAsync(), Times.Once);
+            await _environmentServiceMock.Received(1).ClearInputAsync();
         }
 
         [Test]
@@ -254,7 +254,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
             var expression = _parser.Parse(tokens);
             await _interpreter.InterpretAsync(expression);
 
-            _environmentServiceMock.Verify(x => x.ExitApplicationAsync(), Times.Once);
+            await _environmentServiceMock.Received(1).ExitApplicationAsync();
         }
 
         public void Dispose()

@@ -4,7 +4,8 @@ using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.GoG;
 using LibLite.CheapGet.Core.Stores.Games.Steam;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using System;
 using System.Globalization;
@@ -16,24 +17,24 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
     [TestFixture]
     public class HtmlReportGeneratorTests
     {
-        private Mock<IResourceService> _resourceServiceMock;
+        private IResourceService _resourceServiceMock;
 
         private HtmlReportGenerator _reportGenerator;
 
         [SetUp]
         public void SetUp()
         {
-            _resourceServiceMock = new();
+            _resourceServiceMock = Substitute.For<IResourceService>();
 
-            _reportGenerator = new(_resourceServiceMock.Object);
+            _reportGenerator = new(_resourceServiceMock);
         }
 
         [Test]
         public async Task GenerateReportAsync_Success_ReturnsFilledTemplate()
         {
             _resourceServiceMock
-                .Setup(x => x.ReadAllTextFromResourceAsync(HtmlReportGenerator.TEMPLATE_FILENAME))
-                .ReturnsAsync($"<html><head></head><body><table>{HtmlReportGenerator.TEMPLATE_CONTENT_PLACEHOLDER}</table></body></html>");
+                .ReadAllTextFromResourceAsync(HtmlReportGenerator.TEMPLATE_FILENAME)
+                .Returns($"<html><head></head><body><table>{HtmlReportGenerator.TEMPLATE_CONTENT_PLACEHOLDER}</table></body></html>");
             var products = new Product[]
             {
                 new SteamProduct("steam_game", 10, 5, "http://steam_game.com", "http://steam_game.com/app/1234"),
@@ -74,8 +75,8 @@ namespace LibLite.CheapGet.Business.Tests.Services.Reports
         {
             var exception = new Exception("Error!");
             _resourceServiceMock
-                .Setup(x => x.ReadAllTextFromResourceAsync(It.IsAny<string>()))
-                .ThrowsAsync(exception);
+                .ReadAllTextFromResourceAsync(Arg.Any<string>())
+                .Throws(exception);
             var products = new Product[]
             {
                 new SteamProduct("steam_game", 10, 5, "http://steam_game.com", "http://steam_game.com/app/1234"),

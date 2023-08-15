@@ -1,6 +1,6 @@
 ﻿using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
-using Moq;
+using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients
 
         protected Exception _exception;
         protected CancellationToken _token;
-        protected Mock<IHttpClient> _httpClientMock;
+        protected IHttpClient _httpClientMock;
         protected TClient _client;
 
         [SetUp]
@@ -24,7 +24,7 @@ namespace LibLite.CheapGet.DAL.Tests.Clients
         {
             _exception = new Exception("Error!");
             _token = new();
-            _httpClientMock = new();
+            _httpClientMock = Substitute.For<IHttpClient>();
             _client = CreateClient();
         }
 
