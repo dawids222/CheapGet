@@ -91,10 +91,12 @@ namespace LibLite.CheapGet.DAL.Clients.Games
                     ?.GetValue<string>();
 
                 var discountedPrice = discountNode
-                    .GetAttributeValue<double>("data-price-final", 0) / 100;
+                    ?.GetAttributeValue<double>("data-price-final", 0) / 100
+                    ?? 0;
 
                 var discountPercentage = discountNode
-                    .GetAttributeValue<double>("data-discount", 0);
+                    ?.GetAttributeValue<double>("data-discount", 0)
+                    ?? 0;
                 var discountRate = 1 - (discountPercentage / 100);
                 var basePrice = discountedPrice / discountRate;
 
