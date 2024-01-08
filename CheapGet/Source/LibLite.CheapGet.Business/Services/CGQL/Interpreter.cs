@@ -47,6 +47,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 Select select => InterpretSelectAsync(select),
                 Wishlist wishlist => InterpretWishlistAsync(wishlist),
                 Load load => InterpretLoadAsync(load),
+                Combine combine => InterpretCombineAsync(combine),
                 Cls => InterpretClsAsync(),
                 Exit => InterpretExitAsync(),
                 _ => throw new UnsupportedExpressionException(expression),
@@ -216,6 +217,18 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             var tokens = _lexer.Lex(query);
             var expression = _parser.Parse(tokens);
             await InterpretAsync(expression);
+        }
+
+        private async Task InterpretCombineAsync(Combine combine)
+        {
+            var products = new List<Product>();
+            foreach (var select in combine.Selects)
+            {
+                var newProducts = await GetProductsAsync(select);
+                products.AddRange(newProducts);
+            }
+            var report = await _reportGenerator.GenerateAsync(products);
+            await _reportPresenter.PresentAsync(report);
         }
 
         private Task InterpretClsAsync() => _environmentService.ClearInputAsync();

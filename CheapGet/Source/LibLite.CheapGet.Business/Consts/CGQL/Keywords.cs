@@ -13,6 +13,7 @@
         public const string WISH = "wish";
         public const string MAX = "max";
         public const string LOAD = "load";
+        public const string COMBINE = "combine";
         public const string CLS = "cls";
         public const string EXIT = "exit";
 

@@ -10,10 +10,11 @@ namespace LibLite.CheapGet.Business.Services.CGQL
     // TODO: Consolidate error messages
     public class Parser : IParser
     {
-        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.WISHLIST, TokenType.LOAD, TokenType.CLS, TokenType.EXIT };
+        public static readonly TokenType[] ROOT_TOKEN_TYPES = new[] { TokenType.SELECT, TokenType.WISHLIST, TokenType.LOAD, TokenType.COMBINE, TokenType.CLS, TokenType.EXIT };
         public static readonly TokenType[] LITERAL_TOKEN_TYPES = new[] { TokenType.TEXT, TokenType.INTEGER, TokenType.FLOATING };
         public static readonly TokenType[] NUMERIC_TOKEN_TYPES = new[] { TokenType.INTEGER, TokenType.FLOATING };
-        public static readonly TokenType[] SELECT_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.EOF };
+        public static readonly TokenType[] SELECT_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.FILTER, TokenType.SORT, TokenType.TAKE, TokenType.SELECT, TokenType.EOF };
+        public static readonly TokenType[] COMBINE_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.SELECT, TokenType.EOF };
         public static readonly TokenType[] WISHLIST_EXPECTED_TOKEN_TYPES = new TokenType[] { TokenType.FROM, TokenType.WISH, TokenType.MAX, TokenType.EOF };
 
         private IList<Token> _tokens;
@@ -41,6 +42,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
                 TokenType.WISH => ParseWish(token),
                 TokenType.MAX => ParseMax(token),
                 TokenType.LOAD => ParseLoad(token),
+                TokenType.COMBINE => ParseCombine(token),
                 TokenType.CLS => ParseCls(token),
                 TokenType.EXIT => ParseExit(token),
                 _ => throw new UnsupportedTokenException(token),
@@ -66,13 +68,23 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             return token;
         }
 
+        private void Spit(Token token)
+        {
+            _tokens.Insert(0, token);
+        }
+
         private Select ParseSelect(Token _)
         {
             var result = new Select();
             while (true)
             {
                 var token = Eat(SELECT_EXPECTED_TOKEN_TYPES);
-                if (token.Type == TokenType.EOF) { break; }
+                if (token.Type == TokenType.SELECT ||
+                    token.Type == TokenType.EOF)
+                {
+                    Spit(token);
+                    break;
+                }
 
                 var expression = Parse(token);
                 if (token.Type == TokenType.FROM) { result.From = expression as From; }
@@ -234,6 +246,19 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             var source = Eat(TokenType.TEXT);
             var text = new Text(source.Value);
             return new Load(text);
+        }
+
+        private Combine ParseCombine(Token _)
+        {
+            var combine = new Combine();
+            while (true)
+            {
+                var token = Eat(COMBINE_EXPECTED_TOKEN_TYPES);
+                if (token.Type == TokenType.EOF) { break; }
+                var select = ParseSelect(token);
+                combine.Selects.Add(select);
+            }
+            return combine;
         }
 
         private Cls ParseCls(Token _)

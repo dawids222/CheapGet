@@ -53,6 +53,7 @@ namespace LibLite.CheapGet.Business.Services.CGQL
             if (lowerToken == Keywords.WISH) return TokenType.WISH;
             if (lowerToken == Keywords.MAX) return TokenType.MAX;
             if (lowerToken == Keywords.LOAD) return TokenType.LOAD;
+            if (lowerToken == Keywords.COMBINE) return TokenType.COMBINE;
             if (lowerToken == Keywords.CLS) return TokenType.CLS;
             if (lowerToken == Keywords.EXIT) return TokenType.EXIT;
             if (IsSortDirectionToken(lowerToken)) return TokenType.SORT_DIRECTION;

@@ -16,6 +16,7 @@
         WISH,
         MAX,
         LOAD,
+        COMBINE,
         CLS,
         EXIT,
         EOF,
