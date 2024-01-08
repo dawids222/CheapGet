@@ -224,10 +224,79 @@ asc",
             new LexValidTestCase
             {
                 Input = @"""""text""",
-                Expected= new List<Token>
+                Expected = new List<Token>
                 {
                     new Token(TokenType.UNRECOGNISED, @"""""text""", 0),
                     new Token(TokenType.EOF, "", 7),
+                },
+            },
+            new LexValidTestCase
+            {
+                Input = @"combine
+
+select
+take 100
+filter ""store_name"" <> ""steam""
+filter ""discount_percentage"" >= 49
+sort ""discount_percentage"" desc
+
+select
+take 100
+filter ""store_name"" <> ""gog""
+filter ""discount_percentage"" >= 49
+sort ""discount_percentage"" desc
+
+select
+take 100
+filter ""store_name"" <> ""playstationstore""
+filter ""discount_percentage"" >= 49
+sort ""discount_percentage"" desc",
+                Expected = new List<Token>
+                {
+                    new Token(TokenType.COMBINE, "combine", 0),
+                    new Token(TokenType.SELECT, "select", 9),
+                    new Token(TokenType.TAKE, "take", 16),
+                    new Token(TokenType.INTEGER, "100", 21),
+                    new Token(TokenType.FILTER, "filter", 25),
+                    new Token(TokenType.TEXT, "store_name", 32),
+                    new Token(TokenType.COMPARISON, "<>", 45),
+                    new Token(TokenType.TEXT, "steam", 48),
+                    new Token(TokenType.FILTER, "filter", 56),
+                    new Token(TokenType.TEXT, "discount_percentage", 63),
+                    new Token(TokenType.COMPARISON, ">=", 85),
+                    new Token(TokenType.INTEGER, "49", 88),
+                    new Token(TokenType.SORT, "sort", 91),
+                    new Token(TokenType.TEXT, "discount_percentage", 96),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 118),
+                    new Token(TokenType.SELECT, "select", 124),
+                    new Token(TokenType.TAKE, "take", 131),
+                    new Token(TokenType.INTEGER, "100", 136),
+                    new Token(TokenType.FILTER, "filter", 140),
+                    new Token(TokenType.TEXT, "store_name", 147),
+                    new Token(TokenType.COMPARISON, "<>", 160),
+                    new Token(TokenType.TEXT, "gog", 163),
+                    new Token(TokenType.FILTER, "filter", 169),
+                    new Token(TokenType.TEXT, "discount_percentage", 176),
+                    new Token(TokenType.COMPARISON, ">=", 198),
+                    new Token(TokenType.INTEGER, "49", 201),
+                    new Token(TokenType.SORT, "sort", 204),
+                    new Token(TokenType.TEXT, "discount_percentage", 209),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 231),
+                    new Token(TokenType.SELECT, "select", 237),
+                    new Token(TokenType.TAKE, "take", 244),
+                    new Token(TokenType.INTEGER, "100", 249),
+                    new Token(TokenType.FILTER, "filter", 253),
+                    new Token(TokenType.TEXT, "store_name", 260),
+                    new Token(TokenType.COMPARISON, "<>", 273),
+                    new Token(TokenType.TEXT, "playstationstore", 276),
+                    new Token(TokenType.FILTER, "filter", 295),
+                    new Token(TokenType.TEXT, "discount_percentage", 302),
+                    new Token(TokenType.COMPARISON, ">=", 324),
+                    new Token(TokenType.INTEGER, "49", 327),
+                    new Token(TokenType.SORT, "sort", 330),
+                    new Token(TokenType.TEXT, "discount_percentage", 335),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 357),
+                    new Token(TokenType.EOF, "", 361),
                 },
             },
         };

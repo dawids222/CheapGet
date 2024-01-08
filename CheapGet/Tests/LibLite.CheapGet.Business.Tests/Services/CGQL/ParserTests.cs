@@ -200,6 +200,104 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     },
                 },
             },
+            new ParseValidTestCase
+            {
+                Tokens = new List<Token>()
+                {
+                    new Token(TokenType.COMBINE, "combine", 0),
+                    new Token(TokenType.SELECT, "select", 9),
+                    new Token(TokenType.TAKE, "take", 16),
+                    new Token(TokenType.INTEGER, "100", 21),
+                    new Token(TokenType.FILTER, "filter", 25),
+                    new Token(TokenType.TEXT, "store_name", 32),
+                    new Token(TokenType.COMPARISON, "<>", 45),
+                    new Token(TokenType.TEXT, "steam", 48),
+                    new Token(TokenType.FILTER, "filter", 56),
+                    new Token(TokenType.TEXT, "discount_percentage", 63),
+                    new Token(TokenType.COMPARISON, ">=", 85),
+                    new Token(TokenType.INTEGER, "49", 88),
+                    new Token(TokenType.SORT, "sort", 91),
+                    new Token(TokenType.TEXT, "discount_percentage", 96),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 118),
+                    new Token(TokenType.SELECT, "select", 124),
+                    new Token(TokenType.TAKE, "take", 131),
+                    new Token(TokenType.INTEGER, "100", 136),
+                    new Token(TokenType.FILTER, "filter", 140),
+                    new Token(TokenType.TEXT, "store_name", 147),
+                    new Token(TokenType.COMPARISON, "<>", 160),
+                    new Token(TokenType.TEXT, "gog", 163),
+                    new Token(TokenType.FILTER, "filter", 169),
+                    new Token(TokenType.TEXT, "discount_percentage", 176),
+                    new Token(TokenType.COMPARISON, ">=", 198),
+                    new Token(TokenType.INTEGER, "49", 201),
+                    new Token(TokenType.SORT, "sort", 204),
+                    new Token(TokenType.TEXT, "discount_percentage", 209),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 231),
+                    new Token(TokenType.SELECT, "select", 237),
+                    new Token(TokenType.TAKE, "take", 244),
+                    new Token(TokenType.INTEGER, "100", 249),
+                    new Token(TokenType.FILTER, "filter", 253),
+                    new Token(TokenType.TEXT, "store_name", 260),
+                    new Token(TokenType.COMPARISON, "<>", 273),
+                    new Token(TokenType.TEXT, "playstationstore", 276),
+                    new Token(TokenType.FILTER, "filter", 295),
+                    new Token(TokenType.TEXT, "discount_percentage", 302),
+                    new Token(TokenType.COMPARISON, ">=", 324),
+                    new Token(TokenType.INTEGER, "49", 327),
+                    new Token(TokenType.SORT, "sort", 330),
+                    new Token(TokenType.TEXT, "discount_percentage", 335),
+                    new Token(TokenType.SORT_DIRECTION, "desc", 357),
+                    new Token(TokenType.EOF, "", 361),
+                },
+                Expected = new Combine
+                {
+                    Selects = new List<Select>
+                    {
+                        new Select
+                        {
+                            Take = new Take(new Integer(100)),
+                            From = new From(new Text(Categories.GAMES)),
+                            Filters = new List<Filter>
+                            {
+                                new Filter(new Text(Properties.STORE_NAME), new Comparison(Comparisons.CONTAIN), new Text("steam")),
+                                new Filter(new Text(Properties.DISCOUNT_PERCENTAGE), new Comparison(Comparisons.GREATER_OR_EQUAL), new Integer(49)),
+                            },
+                            Sorts = new List<Sort>
+                            {
+                                new Sort(new Text(Properties.DISCOUNT_PERCENTAGE), new SortDirection(Keywords.DESC)),
+                            },
+                        },
+                        new Select
+                        {
+                            Take = new Take(new Integer(100)),
+                            From = new From(new Text(Categories.GAMES)),
+                            Filters = new List<Filter>
+                            {
+                                new Filter(new Text(Properties.STORE_NAME), new Comparison(Comparisons.CONTAIN), new Text("gog")),
+                                new Filter(new Text(Properties.DISCOUNT_PERCENTAGE), new Comparison(Comparisons.GREATER_OR_EQUAL), new Integer(49)),
+                            },
+                            Sorts = new List<Sort>
+                            {
+                                new Sort(new Text(Properties.DISCOUNT_PERCENTAGE), new SortDirection(Keywords.DESC)),
+                            },
+                        },
+                        new Select
+                        {
+                            Take = new Take(new Integer(100)),
+                            From = new From(new Text(Categories.GAMES)),
+                            Filters = new List<Filter>
+                            {
+                                new Filter(new Text(Properties.STORE_NAME), new Comparison(Comparisons.CONTAIN), new Text("playstationstore")),
+                                new Filter(new Text(Properties.DISCOUNT_PERCENTAGE), new Comparison(Comparisons.GREATER_OR_EQUAL), new Integer(49)),
+                            },
+                            Sorts = new List<Sort>
+                            {
+                                new Sort(new Text(Properties.DISCOUNT_PERCENTAGE), new SortDirection(Keywords.DESC)),
+                            },
+                        },
+                    }
+                },
+            }
         };
 
         public class ParseValidTestCase
@@ -225,6 +323,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 GetExpectedRootTokenFailureTestCases(),
                 GetSelectExpectedTokenFailureTestCases(),
                 GetLoadExpectedTokenFailureTestCases(),
+                GetCombineExpectedTokenFailureTestCases(),
                 GetValueFailureManualTestCases(),
                 GetValueFailureGeneratedTestCases(),
                 GetUnrecognisedTokenExceptionTestCases(),
@@ -296,6 +395,28 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                     {
                         Tokens = new Token[] { load, token },
                         Exception = new UnexpectedTokenException(token, textTokenType),
+                    };
+                })
+            .ToList();
+        }
+
+        private static IEnumerable<ParseInvalidTestCase<UnexpectedTokenException>> GetCombineExpectedTokenFailureTestCases()
+        {
+            var expectedTokenTypes = new TokenType[] { TokenType.SELECT, TokenType.EOF };
+            var unrecognisedTokenType = new TokenType[] { TokenType.UNRECOGNISED };
+            return Enum
+                .GetValues(typeof(TokenType))
+                .Cast<TokenType>()
+                .Except(expectedTokenTypes)
+                .Except(unrecognisedTokenType)
+                .Select(type =>
+                {
+                    var combine = new Token(TokenType.COMBINE, Keywords.COMBINE, 0);
+                    var token = new Token(type, type.ToString(), 9);
+                    return new ParseInvalidTestCase<UnexpectedTokenException>
+                    {
+                        Tokens = new Token[] { combine, token },
+                        Exception = new UnexpectedTokenException(token, expectedTokenTypes),
                     };
                 })
             .ToList();

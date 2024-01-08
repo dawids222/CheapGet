@@ -14,6 +14,7 @@ using LibLite.DI.Lite;
 using NSubstitute;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
     [TestFixture]
     public class InterpreterTests : IDisposable
     {
-        private readonly DI.Lite.Container _container;
+        private readonly Container _container;
         private readonly DependencyProvider _scope;
 
         private readonly IStoreService _gameStoreServiceMock;
@@ -224,6 +225,70 @@ namespace LibLite.CheapGet.Business.Tests.Services.CGQL
                 .Returns(products);
             _reportGeneratorMock
                 .GenerateAsync(products)
+                .Returns(report);
+
+            var tokens = _lexer.Lex(input);
+            var expression = _parser.Parse(tokens);
+            await _interpreter.InterpretAsync(expression);
+
+            await _reportPresenterMock.Received(1).PresentAsync(report);
+        }
+
+        [Test]
+        public async Task InterpretAsync_Combine_PresentsReportWithParameters()
+        {
+            var input = @"combine
+
+                          select
+                          take 50
+                          filter ""store_name"" <> ""steam""
+                          filter ""discount_percentage"" >= 49
+                          sort ""discount_percentage"" desc
+                          
+                          select
+                          take 100
+                          filter ""store_name"" <> ""gog""
+                          filter ""discount_percentage"" >= 49
+                          sort ""discount_percentage"" desc
+                          
+                          select
+                          take 150
+                          filter ""store_name"" <> ""playstationstore""
+                          filter ""discount_percentage"" >= 49
+                          sort ""discount_percentage"" desc";
+            var steamProducts = new Product[]
+            {
+                new SteamProduct(default, default, default, default, default),
+            };
+            var gogProducts = new Product[]
+            {
+                new SteamProduct(default, default, default, default, default),
+            };
+            var playStationStoreProducts = new Product[]
+            {
+                new SteamProduct(default, default, default, default, default),
+            };
+            var report = new Report();
+            _gameStoreServiceMock
+                .GetDiscountedProductsAsync(
+                    Arg.Is<GetProductsRequest>(x => x.Count == 50),
+                    Arg.Any<CancellationToken>())
+                .Returns(steamProducts);
+            _gameStoreServiceMock
+                .GetDiscountedProductsAsync(
+                    Arg.Is<GetProductsRequest>(x => x.Count == 100),
+                    Arg.Any<CancellationToken>())
+                .Returns(gogProducts);
+            _gameStoreServiceMock
+                .GetDiscountedProductsAsync(
+                    Arg.Is<GetProductsRequest>(x => x.Count == 150),
+                    Arg.Any<CancellationToken>())
+                .Returns(playStationStoreProducts);
+            _reportGeneratorMock
+                .GenerateAsync(Arg.Is<IEnumerable<Product>>(x =>
+                    x.ElementAt(0) == steamProducts.ElementAt(0) &&
+                    x.ElementAt(1) == gogProducts.ElementAt(0) &&
+                    x.ElementAt(2) == playStationStoreProducts.ElementAt(0)))
                 .Returns(report);
 
             var tokens = _lexer.Lex(input);
