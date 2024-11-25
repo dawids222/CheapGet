@@ -18,6 +18,7 @@ using LibLite.CheapGet.DAL.Services;
 using LibLite.DI.Lite;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace LibLite.CheapGet.Client.Console.Extensions
@@ -87,6 +88,9 @@ namespace LibLite.CheapGet.Client.Console.Extensions
                 }
                 Environment.Exit(1);
             }
+
+            var consoleWriter = new TextWriterTraceListener(System.Console.Out);
+            Trace.Listeners.Add(consoleWriter);
         }
     }
 }

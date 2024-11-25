@@ -1,6 +1,7 @@
 ﻿using LibLite.CheapGet.Core.Collections;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Models;
+using System.Diagnostics;
 
 namespace LibLite.CheapGet.Business.Services.Stores
 {
@@ -46,7 +47,18 @@ namespace LibLite.CheapGet.Business.Services.Stores
         private async Task<IEnumerable<Product>> GetProductsAsync(int start, int count, CancellationToken token)
         {
             var tasks = _stores
-                .Select(store => Task.Run(() => store.GetDiscountedProductsAsync(start, count, token)))
+                .Select(async store =>
+                {
+                    try
+                    {
+                        return await store.GetDiscountedProductsAsync(start, count, token);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex);
+                        return await Task.FromResult(Array.Empty<Product>());
+                    }
+                })
                 .ToList();
             var results = await Task.WhenAll(tasks);
             return results
@@ -72,7 +84,18 @@ namespace LibLite.CheapGet.Business.Services.Stores
             }
 
             var tasks = _stores
-                .Select(store => store.GetDiscountedProductsAsync(parameters.Count, token))
+                .Select(async store =>
+                {
+                    try
+                    {
+                        return await store.GetDiscountedProductsAsync(parameters.Count, token);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex);
+                        return await Task.FromResult(Array.Empty<Product>());
+                    }
+                })
                 .ToList();
 
             var results = await Task.WhenAll(tasks);
