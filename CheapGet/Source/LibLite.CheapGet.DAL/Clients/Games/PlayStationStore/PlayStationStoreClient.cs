@@ -1,20 +1,17 @@
-﻿using LibLite.CheapGet.Core.Services;
+﻿using HtmlAgilityPack;
+using LibLite.CheapGet.Core.Services;
 using LibLite.CheapGet.Core.Stores;
 using LibLite.CheapGet.Core.Stores.Games.PlayStationStore;
-using LibLite.CheapGet.DAL.Clients.Games.PlayStationStore.Responses;
-using System.Text.RegularExpressions;
+using LibLite.CheapGet.DAL.Extensions;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace LibLite.CheapGet.DAL.Clients.Games.PlayStationStore
 {
     public class PlayStationStoreClient : IPlayStationStoreClient
     {
-        private const string AUTH_URL = "https://store.playstation.com/pl-pl/pages/deals";
-        private const string AUTH_TOKEN_REGEX = "(?<=\"categoryId\":\")(.*?)(?=\",)";
-
-        private const string PRODUCT_PAGE_URL_TEMPLATE = "https://store.playstation.com/pl-pl/product/";
-        private const int PRODUCTS_PER_REQUEST = 100;
-
-        private readonly Dictionary<string, string> HEADERS = new() { { "x-psn-store-locale-override", "pl-PL" } };
+        // TODO: Better deduce it based on scrapped html...
+        private const int PRODUCTS_PER_REQUEST = 24;
 
         private readonly IHttpClient _httpClient;
 
@@ -25,77 +22,87 @@ namespace LibLite.CheapGet.DAL.Clients.Games.PlayStationStore
 
         public async Task<IEnumerable<Product>> GetDiscountedProductsAsync(int start, int count, CancellationToken token)
         {
-            var startPage = start / PRODUCTS_PER_REQUEST;
-            var endPage = (start + count - 1) / PRODUCTS_PER_REQUEST;
-            var pagesCount = endPage - startPage + 1;
-            var pages = Enumerable.Range(startPage, pagesCount);
+            var tasks = new List<Task<IEnumerable<PlayStationStoreProduct>>>();
 
-            var tasks = pages
-                .Select(page => GetDiscountedProductsAsync(page, CancellationToken.None))
-                .ToList();
+            var iterator = start;
+            var end = start + count;
 
-            var results = await Task.WhenAll(tasks);
-            var products = results
-                .SelectMany(products => products
-                    .Select(product => product));
-
-            var skip = start % PRODUCTS_PER_REQUEST;
-            return products
-                .Skip(skip)
-                .Take(count)
-                .ToList();
-        }
-
-        private async Task<IEnumerable<PlayStationStoreProduct>> GetDiscountedProductsAsync(int page, CancellationToken token)
-        {
-            var authToken = await GetAuthTokenAsync(token);
-            var url = "https://web.np.playstation.com/api/graphql/v1//op?operationName=categoryGridRetrieve&variables={\"id\":\"" + authToken + "\",\"pageArgs\":{\"size\":" + PRODUCTS_PER_REQUEST + ",\"offset\":" + PRODUCTS_PER_REQUEST * page + "},\"sortBy\":{\"name\":\"sales30\",\"isAscending\":false},\"filterBy\":[],\"facetOptions\":[]}&extensions={\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"4ce7d410a4db2c8b635a48c1dcec375906ff63b19dadd87e073f8fd0c0481d35\"}}";
-            var response = await _httpClient.GetAsync<PlayStationStoreGetDiscountedProductsResponse>(url, HEADERS, token);
-            return response
-            .Data
-            .CategoryGridRetrieve
-            .Products
-            .Select(x => new PlayStationStoreProduct(
-                x.Name,
-                ToPrice(x.Price.BasePrice),
-                ToPrice(x.Price.DiscountedPrice),
-                GetImgUrl(x.Media),
-                ToProductUrl(x.Id)))
-            .ToList();
-        }
-
-        private async Task<string> GetAuthTokenAsync(CancellationToken token)
-        {
-            var result = await _httpClient.GetStringAsync(AUTH_URL, token);
-            var regex = new Regex(AUTH_TOKEN_REGEX);
-            var match = regex.Match(result);
-
-            if (match is null || !match.Success)
+            var pageNumber = 1;
+            while (iterator < end)
             {
-                throw new Exception($"{nameof(PlayStationStoreClient)} could not find auth token");
+                var remaining = end - iterator;
+
+                var task = GetDiscountedProductsFromPageAsync(pageNumber++, token);
+                tasks.Add(task);
+
+                iterator += PRODUCTS_PER_REQUEST;
             }
 
-            return match.Value;
+            var results = await Task.WhenAll(tasks);
+            return results.SelectMany(x => x).ToList();
         }
 
-        private static double ToPrice(string value)
+        private async Task<IEnumerable<PlayStationStoreProduct>> GetDiscountedProductsFromPageAsync(int pageNumber, CancellationToken token)
         {
-            value = value.Replace(".", ",");
-            value = Regex.Replace(value, "[^0-9,]", "");
-            if (string.IsNullOrWhiteSpace(value)) { return 0; }
-            return double.Parse(value);
+            var url = $"https://store.playstation.com/pl-pl/category/83a687fe-bed7-448c-909f-310e74a71b39/{pageNumber}";
+            var html = await _httpClient.GetStringAsync(url, token);
+
+            var document = new HtmlDocument();
+            document.LoadHtml(html);
+
+            return ScrapHtmlDocument(document);
         }
 
-        private static string GetImgUrl(IEnumerable<PlayStationStoreGetDiscountedProductsResponse.Media> media)
+        private static IEnumerable<PlayStationStoreProduct> ScrapHtmlDocument(HtmlDocument document)
         {
-            return media
-                .FirstOrDefault(x => x.Role == "MASTER")
-                ?.Url;
+            var productListItems = document.DocumentNode
+                .SelectSingleNode("//ul[@class='psw-grid-list psw-l-grid']")
+                .ChildNodes
+                .Where(x => x.Name == "li");
+
+            foreach (var productListItem in productListItems)
+            {
+                var telemetryMeta = productListItem
+                    .FirstChild // div
+                    .FirstChild // a
+                    .GetAttributeValue("data-telemetry-meta", "")
+                    .Replace("&quot;", "\"");
+                var productId = JsonSerializer.Deserialize<TelemetryMeta>(telemetryMeta, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                }).Id;
+                var url = $"https://store.playstation.com/pl-pl/product/{productId}";
+
+                var productTile = productListItem
+                    .FirstChild // div
+                    .FirstChild // a
+                    .FirstChild;// div
+
+                var imgUrl = productTile
+                    .FirstChild
+                    .FirstChild
+                    .GetFirstChildWithClass("psw-image")
+                    .GetFirstChildWithName("img")
+                    .GetAttributeValue("src", "");
+
+                var detailsSection = productTile.GetFirstChildWithName("section");
+                var name = detailsSection.GetFirstChildWithClass("psw-t-body").GetValue<string>();
+
+                var priceDiv = detailsSection
+                    ?.GetFirstChildWithClass("psw-price")
+                    ?.FirstChild;
+
+                var basePrice = priceDiv?.GetFirstChildWithName("s")?.GetValue<double>() ?? 0;
+                var discountedPrice = priceDiv.GetFirstChildWithName("span")?.GetValue<double>() ?? basePrice;
+
+                yield return new PlayStationStoreProduct(name, basePrice, discountedPrice, imgUrl, url);
+            }
         }
 
-        private static string ToProductUrl(string id)
+        private class TelemetryMeta
         {
-            return $"{PRODUCT_PAGE_URL_TEMPLATE}{id}";
+            public string Id { get; set; }
         }
     }
 }
